@@ -2,11 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\CapaianKompetensi;
-use App\Models\Kelas;
-use App\Models\MataPelajaran;
-use App\Models\Materi;
 use App\Models\User;
+use App\Models\Pariwisata;
+use App\Models\PariwisataOverlays;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -17,12 +15,22 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create default user
-        User::factory()->create([
+        // Default user
+        $user = User::factory()->create([
             'name' => 'Bintang',
             'email' => 'bintang@gmail.com',
             'password' => bcrypt('12345678'),
         ]);
+
+        // Sample pariwisata records
+        $pariwisata = Pariwisata::factory()->count(2)->create();
+
+        // 5 overlay records with alignment-only schema
+        foreach (range(1,5) as $i) {
+            PariwisataOverlays::factory()->create([
+                'pariwisata_id' => $pariwisata->random()->id,
+            ]);
+        }
 
     }
 }

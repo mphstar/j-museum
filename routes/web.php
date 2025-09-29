@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\PariwisataController;
 use App\Http\Controllers\Admin\TahunAkademikController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\DashboardController;
@@ -27,8 +28,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('update', [UserController::class, 'update'])->name('user.update');
     });
 
+    Route::prefix('pariwisata')->group(function () {
+        Route::get('/', [PariwisataController::class, 'index'])->name('pariwisata.index');
+        Route::get('create', [PariwisataController::class, 'create'])->name('pariwisata.create');
+        Route::post('store', [PariwisataController::class, 'store'])->name('pariwisata.store');
+        Route::get('edit/{pariwisata}', [PariwisataController::class, 'edit'])->name('pariwisata.edit');
+        Route::post('update/{pariwisata}', [PariwisataController::class, 'update'])->name('pariwisata.update');
+    Route::post('delete/{pariwisata}', [PariwisataController::class, 'destroy'])->name('pariwisata.destroy');
+        Route::post('delete-multiple', [PariwisataController::class, 'deleteMultiple'])->name('pariwisata.delete-multiple');
+        Route::post('upload-background', [PariwisataController::class, 'uploadBackground'])->name('pariwisata.upload-background');
 
-    
+        // Overlays
+        Route::post('{pariwisata}/overlays', [PariwisataController::class, 'storeOverlay'])->name('pariwisata.overlays.store');
+        Route::post('overlays/{overlay}', [PariwisataController::class, 'updateOverlay'])->name('pariwisata.overlays.update');
+        Route::post('overlays/{overlay}/delete', [PariwisataController::class, 'deleteOverlay'])->name('pariwisata.overlays.delete');
+    });
 });
 
 require __DIR__ . '/settings.php';

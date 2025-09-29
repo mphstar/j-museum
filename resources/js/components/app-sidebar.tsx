@@ -30,6 +30,11 @@ const masterNavItems: NavItem[] = [
         url: '/user',
         icon: LucideUser,
     },
+    {
+        title: 'Pariwisata',
+        url: '/pariwisata',
+        icon: PackageSearch,
+    }
 ];
 
 const footerNavItems: NavItem[] = [
