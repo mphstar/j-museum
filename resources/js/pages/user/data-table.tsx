@@ -18,7 +18,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { router } from '@inertiajs/react';
 import { Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import Swal from 'sweetalert2';
+import { toast } from 'sonner';
+import { DeleteConfirmAlert } from '@/components/ui/delete-confirm-alert';
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
@@ -55,53 +56,27 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
             return { id };
         });
 
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "You won't be able to revert this!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, delete it!',
-        }).then((result) => {
-            if (result.isConfirmed) {
-                Swal.fire({
-                    title: 'Deleting...',
-                    allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    },
-                });
-
-                router.post(
-                    route('user.delete-multiple'),
-                    {
-                        data: payloadRequest,
-                    },
-                    {
-                        onSuccess: () => {
-                            Swal.fire({
-                                title: 'Deleted!',
-                                text: 'Your user has been deleted.',
-                                icon: 'success',
-                                confirmButtonText: 'OK',
-                            });
-                        },
-                        onError: () => {
-                            Swal.fire({
-                                title: 'Error!',
-                                text: 'Something went wrong.',
-                                icon: 'error',
-                                confirmButtonText: 'OK',
-                            });
-                        },
-                        onFinish: () => {
-                            table.resetRowSelection();
-                        },
-                    },
-                );
-            }
-        });
+        router.post(
+            route('user.delete-multiple'),
+            {
+                data: payloadRequest,
+            },
+            {
+                onSuccess: () => {
+                    toast.success('Deleted!', {
+                        description: 'Your user has been deleted.',
+                    });
+                },
+                onError: () => {
+                    toast.error('Error!', {
+                        description: 'Something went wrong.',
+                    });
+                },
+                onFinish: () => {
+                    table.resetRowSelection();
+                },
+            },
+        );
     };
 
     return (
@@ -109,16 +84,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
             <HeadTablePagination
                 table={table}
                 action={
-                    <Select onValueChange={(value) => table.getColumn('role')?.setFilterValue(value == 'all' ? undefined : value)}>
-                        <SelectTrigger className="">
-                            <SelectValue placeholder="Role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">Semua</SelectItem>
-                            <SelectItem value="admin">Admin</SelectItem>
-                            <SelectItem value="guru">Guru</SelectItem>
-                        </SelectContent>
-                    </Select>
+                    <></>
                 }
             />
 
@@ -126,17 +92,16 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
                 <div className="border-primary/10 bg-primary/10 my-4 flex items-center justify-between rounded-md border px-4 py-2">
                     <span className="text-primary text-sm font-semibold">{`${table.getFilteredSelectedRowModel().rows.length} Data Dipilih`}</span>
 
-                    <Button
-                        variant="destructive"
-                        size="sm"
-                        className="gap-1"
-                        onClick={() => {
-                            onDelete();
-                        }}
-                    >
-                        <Trash2 className="h-4 w-4" />
-                        Hapus
-                    </Button>
+                    <DeleteConfirmAlert onConfirm={onDelete}>
+                        <Button
+                            variant="destructive"
+                            size="sm"
+                            className="gap-1"
+                        >
+                            <Trash2 className="h-4 w-4" />
+                            Hapus
+                        </Button>
+                    </DeleteConfirmAlert>
                 </div>
             )}
 

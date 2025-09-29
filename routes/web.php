@@ -27,13 +27,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('update', [UserController::class, 'update'])->name('user.update');
     });
 
-    Route::prefix('tahun-akademik')->group(function () {
-        Route::get('/', [TahunAkademikController::class, 'index'])->name('tahun-akademik.index');
-        Route::post('store', [TahunAkademikController::class, 'store'])->name('tahun-akademik.store');
-        Route::post('delete-multiple', [TahunAkademikController::class, 'deleteMultiple'])->name('tahun-akademik.delete-multiple');
-        Route::post('delete', [TahunAkademikController::class, 'delete'])->name('tahun-akademik.delete');
-        Route::post('update', [TahunAkademikController::class, 'update'])->name('tahun-akademik.update');
-    });
 
     
 });

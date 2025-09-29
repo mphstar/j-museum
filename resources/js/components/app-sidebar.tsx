@@ -32,13 +32,6 @@ const masterNavItems: NavItem[] = [
     },
 ];
 
-const masterNavDataAkademik: NavItem[] = [
-    {
-        title: 'Tahun Akademik',
-        url: '/tahun-akademik',
-        icon: LucideLayoutTemplate,
-    },
-];
 const footerNavItems: NavItem[] = [
     // {
     //     title: 'Repository',
@@ -70,7 +63,6 @@ export function AppSidebar() {
             <SidebarContent>
                 <NavMain items={mainNavItems} />
                 <NavMain title={'Master Data'} items={masterNavItems} />
-                <NavMain title={'Data Akademik'} items={masterNavDataAkademik} />
             </SidebarContent>
 
             <SidebarFooter>

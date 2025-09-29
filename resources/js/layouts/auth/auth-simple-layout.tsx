@@ -10,11 +10,6 @@ interface AuthLayoutProps {
 
 export default function AuthSimpleLayout({ children, title, description }: PropsWithChildren<AuthLayoutProps>) {
 
-    const { pengaturan } = usePage().props as unknown as {
-        pengaturan: {
-            logo: string
-        }
-    }
     
     return (
         <div className="bg-background flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
@@ -23,7 +18,7 @@ export default function AuthSimpleLayout({ children, title, description }: Props
                     <div className="flex flex-col items-center gap-4">
                         <Link href={route('home')} className="flex flex-col items-center gap-2 font-medium">
                             <div className="mb-1 flex h-14 w-14 items-center justify-center rounded-md">
-                                {pengaturan.logo ? <img src={pengaturan.logo} alt="Logo" className="object-cover" /> : <AppLogoIcon className="size-9 fill-current text-[var(--foreground)] dark:text-white" />}
+                                {false ? <img src={''} alt="Logo" className="object-cover" /> : <AppLogoIcon className="size-9 fill-current text-[var(--foreground)] dark:text-white" />}
                             </div>
                             <span className="sr-only">{title}</span>
                         </Link>

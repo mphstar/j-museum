@@ -26,7 +26,6 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
-            'role' => 'required|in:admin,guru',
         ]);
 
         DB::beginTransaction();
@@ -36,7 +35,6 @@ class UserController extends Controller
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => bcrypt($request->password),
-                'role' => $request->role,
             ]);
 
             DB::commit();
@@ -101,7 +99,6 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $request->id,
-            'role' => 'required|in:admin,guru',
         ]);
 
         DB::beginTransaction();
@@ -110,7 +107,6 @@ class UserController extends Controller
             $user = User::findOrFail($request->id);
             $user->name = $request->name;
             $user->email = $request->email;
-            $user->role = $request->role;
             $user->save();
 
             DB::commit();

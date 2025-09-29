@@ -1,11 +1,14 @@
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { DeleteConfirmAlert } from '@/components/ui/delete-confirm-alert'; // (unused after refactor, consider removing)
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import useProductStore from '@/stores/useProduct';
 import { router } from '@inertiajs/react';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowUpDown, MoreHorizontal } from 'lucide-react';
-import Swal from 'sweetalert2';
+import { toast } from 'sonner';
 
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
@@ -13,56 +16,29 @@ export type UserType = {
     id: number;
     name: string;
     email: string;
-    role: 'admin' | 'user';
     created_at: string;
 };
 
 const onDelete = (id: number) => {
-    Swal.fire({
-        title: 'Are you sure?',
-        text: "You won't be able to revert this!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, delete it!',
-    }).then((result) => {
-        if (result.isConfirmed) {
-            Swal.fire({
-                title: 'Deleting...',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                },
-            });
-
-            router.post(
-                route('user.delete'),
-                {
-                    id,
-                },
-                {
-                    onSuccess: () => {
-                        Swal.fire({
-                            title: 'Deleted!',
-                            text: 'Your user has been deleted.',
-                            icon: 'success',
-                            confirmButtonText: 'OK',
-                        });
-                    },
-                    onError: () => {
-                        Swal.fire({
-                            title: 'Error!',
-                            text: 'Something went wrong.',
-                            icon: 'error',
-                            confirmButtonText: 'OK',
-                        });
-                    },
-                    onFinish: () => {},
-                },
-            );
-        }
-    });
+    router.post(
+        route('user.delete'),
+        {
+            id,
+        },
+        {
+            onSuccess: () => {
+                toast.success('Deleted!', {
+                    description: 'Your user has been deleted.',
+                });
+            },
+            onError: () => {
+                toast.error('Error!', {
+                    description: 'Something went wrong.',
+                });
+            },
+            onFinish: () => { },
+        },
+    );
 };
 
 export const columns: ColumnDef<UserType>[] = [
@@ -115,15 +91,6 @@ export const columns: ColumnDef<UserType>[] = [
         },
     },
     {
-        accessorKey: 'role',
-        header: 'Role',
-        cell: ({ cell }) => {
-            const role = cell.getValue<string>();
-            const badgeColor = role === 'admin' ? 'bg-blue-200 text-blue-800' : 'bg-green-200 text-green-800';
-            return <span className={`rounded px-2 py-1 font-semibold text-xs ${badgeColor}`}>{role}</span>;
-        },
-    },
-    {
         accessorKey: 'created_at',
         header: 'Created At',
         cell: ({ cell }) => {
@@ -136,37 +103,76 @@ export const columns: ColumnDef<UserType>[] = [
         cell: ({ row }) => {
             const payment = row.original;
             const store = useProductStore();
+            const [deleteOpen, setDeleteOpen] = React.useState(false);
 
             return (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        {/* <DropdownMenuItem onClick={() => navigator.clipboard.writeText(payment.id)}>Copy payment ID</DropdownMenuItem>
+                <>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            {/* <DropdownMenuItem onClick={() => navigator.clipboard.writeText(payment.id)}>Copy payment ID</DropdownMenuItem>
                         <DropdownMenuSeparator /> */}
-                        <DropdownMenuItem
-                            onClick={() => {
-                                store.setCurrentRow(payment);
-                                store.setDialog('update');
-                                store.setOpen(true);
-                            }}
+                            <DropdownMenuItem
+                                onSelect={() => {
+                                    // Urutan penting: set data dulu, biarkan dropdown menutup (tanpa preventDefault), lalu buka dialog setelah frame berikut.
+                                    store.setCurrentRow(payment);
+                                    store.setDialog('update');
+                                    // Fokus elemen active diblur agar tidak kena aria-hidden warning
+                                    (document.activeElement as HTMLElement | null)?.blur();
+                                    // Delay micro (rAF) supaya popper cleanup selesai sebelum overlay dialog masuk
+                                    requestAnimationFrame(() => {
+                                        // Tambah sedikit timeout jika masih muncul warning (bisa dinaikkan ke 30-50ms jika perlu)
+                                        setTimeout(() => {
+                                            store.setOpen(true);
+                                        }, 0);
+                                    });
+                                }}
+                            >
+                                Edit Data
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                onSelect={() => {
+                                    // Tutup dialog edit jika masih terbuka agar tidak ada dua overlay menumpuk
+                                    if (store.open) {
+                                        store.setOpen(false);
+                                    }
+                                    // Buka dialog delete setelah dropdown menutup
+                                    requestAnimationFrame(() => setDeleteOpen(true));
+                                }}
+                            >
+                                Hapus Data
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+                        <AlertDialogContent
+                            onOpenAutoFocus={(e) => { e.preventDefault(); }}
+                            onCloseAutoFocus={(e) => { e.preventDefault(); }}
                         >
-                            Edit Data
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                            onClick={() => {
-                                onDelete(payment.id);
-                            }}
-                        >
-                            Delete Data
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This action cannot be undone. This will permanently delete the user.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel onClick={() => setDeleteOpen(false)}>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                    onClick={() => {
+                                        onDelete(payment.id);
+                                        setDeleteOpen(false);
+                                    }}
+                                >Delete</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </>
             );
         },
     },

@@ -18,7 +18,6 @@ const FormDialog = () => {
         id: context.currentRow?.id ?? 0,
         name: context.currentRow?.name ?? '',
         email: context.currentRow?.email ?? '',
-        role: context.currentRow?.role ?? 'admin',
         password: '',
     });
 
@@ -27,7 +26,6 @@ const FormDialog = () => {
             setData('id', context.currentRow.id);
             setData('name', context.currentRow.name);
             setData('email', context.currentRow.email);
-            setData('role', context.currentRow.role);
         }
     }, [context.currentRow]);
 
@@ -35,6 +33,7 @@ const FormDialog = () => {
         e.preventDefault();
 
         if (context.dialog == 'create') {
+            
             post(route('user.store'), {
                 onSuccess: () => {
                     reset();
@@ -120,22 +119,7 @@ const FormDialog = () => {
                             />
                             <InputError message={errors.email} className="col-span-4 col-start-3 mt-2" />
                         </div>
-                        <div className="grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1">
-                            <Label className="col-span-2 text-right">Role</Label>
-                            <Select value={data.role} onValueChange={(value) => setData('role', value)}>
-                                <SelectTrigger className="col-span-4">
-                                    <SelectValue placeholder="" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectGroup>
-                                        <SelectLabel>Hak Akses</SelectLabel>
-                                        <SelectItem value="admin">Admin</SelectItem>
-                                        <SelectItem value="guru">Guru</SelectItem>
-                                    </SelectGroup>
-                                </SelectContent>
-                            </Select>
-                            <InputError message={errors.role} className="col-span-4 col-start-3 mt-2" />
-                        </div>
+                        
                         {context.dialog == 'create' && (
                             <div className="grid grid-cols-6 items-center space-y-0 gap-x-4 gap-y-1">
                                 <Label className="col-span-2 text-right">Password</Label>
