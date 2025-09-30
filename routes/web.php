@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\PariwisataController;
+use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\TahunAkademikController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\DashboardController;
@@ -42,6 +43,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('{pariwisata}/overlays', [PariwisataController::class, 'storeOverlay'])->name('pariwisata.overlays.store');
         Route::post('overlays/{overlay}', [PariwisataController::class, 'updateOverlay'])->name('pariwisata.overlays.update');
         Route::post('overlays/{overlay}/delete', [PariwisataController::class, 'deleteOverlay'])->name('pariwisata.overlays.delete');
+    });
+
+    Route::prefix('settings')->group(function () {
+        Route::post('update', [SettingController::class, 'update'])->name('settings.update');
+        Route::get('/', [SettingController::class, 'getSettings'])->name('settings.get');
     });
 });
 
