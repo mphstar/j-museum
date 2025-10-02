@@ -5,10 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Pariwisata extends Model
+class Museum extends Model
 {
     use HasFactory;
-    protected $table = 'pariwisata';
+    protected $table = 'museum';
 
     protected $fillable = [
         'title','label','subtitle','slug','content','background_url','cta_href','cta_label','align'
@@ -16,6 +16,6 @@ class Pariwisata extends Model
 
     public function overlays()
     {
-        return $this->hasMany(PariwisataOverlays::class, 'pariwisata_id');
+        return $this->hasMany(MuseumOverlays::class, 'museum_id');
     }
 }

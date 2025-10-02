@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::table('pariwisata_overlays', function (Blueprint $table) {
+        Schema::table('museum_overlays', function (Blueprint $table) {
             // Semantic alignment fields replacing manual x/y when desired
             $table->string('position_horizontal', 16)->nullable()->after('position'); // left, center, right
             $table->string('position_vertical', 16)->nullable()->after('position_horizontal'); // top, center, bottom
@@ -17,7 +17,7 @@ return new class extends Migration {
 
     public function down(): void
     {
-        Schema::table('pariwisata_overlays', function (Blueprint $table) {
+        Schema::table('museum_overlays', function (Blueprint $table) {
             $table->dropColumn(['position_horizontal','position_vertical','object_fit']);
         });
     }

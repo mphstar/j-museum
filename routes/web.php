@@ -1,8 +1,7 @@
 <?php
 
-use App\Http\Controllers\Admin\PariwisataController;
+use App\Http\Controllers\Admin\MuseumController;
 use App\Http\Controllers\Admin\SettingController;
-use App\Http\Controllers\Admin\TahunAkademikController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
@@ -29,20 +28,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('update', [UserController::class, 'update'])->name('user.update');
     });
 
-    Route::prefix('pariwisata')->group(function () {
-        Route::get('/', [PariwisataController::class, 'index'])->name('pariwisata.index');
-        Route::get('create', [PariwisataController::class, 'create'])->name('pariwisata.create');
-        Route::post('store', [PariwisataController::class, 'store'])->name('pariwisata.store');
-        Route::get('edit/{pariwisata}', [PariwisataController::class, 'edit'])->name('pariwisata.edit');
-        Route::post('update/{pariwisata}', [PariwisataController::class, 'update'])->name('pariwisata.update');
-    Route::post('delete/{pariwisata}', [PariwisataController::class, 'destroy'])->name('pariwisata.destroy');
-        Route::post('delete-multiple', [PariwisataController::class, 'deleteMultiple'])->name('pariwisata.delete-multiple');
-        Route::post('upload-background', [PariwisataController::class, 'uploadBackground'])->name('pariwisata.upload-background');
+    Route::prefix('museum')->group(function () {
+        Route::get('/', [MuseumController::class, 'index'])->name('museum.index');
+        Route::get('create', [MuseumController::class, 'create'])->name('museum.create');
+        Route::post('store', [MuseumController::class, 'store'])->name('museum.store');
+        Route::get('edit/{museum}', [MuseumController::class, 'edit'])->name('museum.edit');
+        Route::post('update/{museum}', [MuseumController::class, 'update'])->name('museum.update');
+    Route::post('delete/{museum}', [MuseumController::class, 'destroy'])->name('museum.destroy');
+        Route::post('delete-multiple', [MuseumController::class, 'deleteMultiple'])->name('museum.delete-multiple');
+        Route::post('upload-background', [MuseumController::class, 'uploadBackground'])->name('museum.upload-background');
 
         // Overlays
-        Route::post('{pariwisata}/overlays', [PariwisataController::class, 'storeOverlay'])->name('pariwisata.overlays.store');
-        Route::post('overlays/{overlay}', [PariwisataController::class, 'updateOverlay'])->name('pariwisata.overlays.update');
-        Route::post('overlays/{overlay}/delete', [PariwisataController::class, 'deleteOverlay'])->name('pariwisata.overlays.delete');
+        Route::post('{museum}/overlays', [MuseumController::class, 'storeOverlay'])->name('museum.overlays.store');
+        Route::post('overlays/{overlay}', [MuseumController::class, 'updateOverlay'])->name('museum.overlays.update');
+        Route::post('overlays/{overlay}/delete', [MuseumController::class, 'deleteOverlay'])->name('museum.overlays.delete');
     });
 
     Route::prefix('settings')->group(function () {

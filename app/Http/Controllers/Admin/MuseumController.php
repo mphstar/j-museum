@@ -3,26 +3,24 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Pariwisata;
-use App\Models\PariwisataOverlays;
+use App\Models\Museum;
+use App\Models\MuseumOverlays;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\File;
 
-class PariwisataController extends Controller
+class MuseumController extends Controller
 {
     private function deleteFileIfExists(?string $url): void
     {
         if (!$url) return;
-        // Expecting asset('uploads/...') or legacy asset('pariwisata/...')
         $publicPath = public_path();
         $parsed = parse_url($url, PHP_URL_PATH);
         if (!$parsed) return;
         // Remove leading slash
         $relative = ltrim($parsed, '/');
         // Security: ensure it's inside allowed directories
-        if (!str_starts_with($relative, 'uploads/pariwisata/') && !str_starts_with($relative, 'pariwisata/')) return;
+        if (!str_starts_with($relative, 'uploads/museum/') && !str_starts_with($relative, 'museum/')) return;
         $full = $publicPath . DIRECTORY_SEPARATOR . $relative;
         if (is_file($full)) {
             @unlink($full);
@@ -31,9 +29,9 @@ class PariwisataController extends Controller
 
     public function index()
     {
-        $data = Pariwisata::latest()->get();
+        $data = Museum::latest()->get();
 
-        return Inertia::render('pariwisata/view', [
+        return Inertia::render('museum/view', [
             'data' => $data,
         ]);
     }
@@ -44,7 +42,7 @@ class PariwisataController extends Controller
             'title' => 'required|string|max:255',
             'label' => 'nullable|string|max:255',
             'subtitle' => 'nullable|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:pariwisata,slug',
+            'slug' => 'nullable|string|max:255|unique:museum,slug',
             'content' => 'nullable|string',
             'background_url' => 'nullable|string|max:255', // will be set after upload
             'background_image' => 'nullable|image|max:4096',
@@ -58,7 +56,7 @@ class PariwisataController extends Controller
             // Ensure uniqueness
             $original = $validated['slug'];
             $i = 1;
-            while (Pariwisata::where('slug', $validated['slug'])->exists()) {
+            while (Museum::where('slug', $validated['slug'])->exists()) {
                 $validated['slug'] = $original.'-'.$i++;
             }
         }
@@ -66,27 +64,27 @@ class PariwisataController extends Controller
         // Handle background image upload if provided
         if ($request->hasFile('background_image')) {
             $file = $request->file('background_image');
-            $dir = public_path('uploads/pariwisata/backgrounds');
+            $dir = public_path('uploads/museum/backgrounds');
             if (!is_dir($dir)) mkdir($dir, 0775, true);
             $ext = $file->getClientOriginalExtension();
             $filename = now()->format('Ymd_His').'_'.Str::random(8).'.'.$ext;
             $file->move($dir, $filename);
-            $validated['background_url'] = asset('uploads/pariwisata/backgrounds/'.$filename);
+            $validated['background_url'] = asset('uploads/museum/backgrounds/'.$filename);
         }
 
         unset($validated['background_image']);
-        $item = Pariwisata::create($validated);
+        $item = Museum::create($validated);
 
-        return redirect()->route('pariwisata.edit', $item->id)->with('success', 'Pariwisata created. Silakan lanjut menambah overlay.');
+        return redirect()->route('museum.edit', $item->id)->with('success', 'Museum created. Silakan lanjut menambah overlay.');
     }
 
-    public function update(Request $request, Pariwisata $pariwisata)
+    public function update(Request $request, Museum $museum)
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'label' => 'nullable|string|max:255',
             'subtitle' => 'nullable|string|max:255',
-            'slug' => 'required|string|max:255|unique:pariwisata,slug,'.$pariwisata->id,
+            'slug' => 'required|string|max:255|unique:museum,slug,'.$museum->id,
             'content' => 'nullable|string',
             'background_url' => 'nullable|string|max:255',
             'background_image' => 'nullable|image|max:4096',
@@ -97,33 +95,33 @@ class PariwisataController extends Controller
 
         if ($request->hasFile('background_image')) {
             $file = $request->file('background_image');
-            $dir = public_path('uploads/pariwisata/backgrounds');
+            $dir = public_path('uploads/museum/backgrounds');
             if (!is_dir($dir)) mkdir($dir, 0775, true);
             $ext = $file->getClientOriginalExtension();
             $filename = now()->format('Ymd_His').'_'.Str::random(8).'.'.$ext;
             $file->move($dir, $filename);
-            $validated['background_url'] = asset('uploads/pariwisata/backgrounds/'.$filename);
+            $validated['background_url'] = asset('uploads/museum/backgrounds/'.$filename);
         }
         unset($validated['background_image']);
 
-        $pariwisata->update($validated);
+        $museum->update($validated);
 
-        return redirect()->route('pariwisata.index')->with('success', 'Pariwisata updated');
+        return redirect()->route('museum.index')->with('success', 'Museum updated');
     }
 
     public function create()
     {
-        return Inertia::render('pariwisata/create', [
+        return Inertia::render('museum/create', [
             'item' => null,
         ]);
     }
 
-    public function edit(Pariwisata $pariwisata)
+    public function edit(Museum $museum)
     {
-        $pariwisata->load('overlays');
-        return Inertia::render('pariwisata/edit', [
-            'item' => $pariwisata,
-            'overlays' => $pariwisata->overlays,
+        $museum->load('overlays');
+        return Inertia::render('museum/edit', [
+            'item' => $museum,
+            'overlays' => $museum->overlays,
         ]);
     }
 
@@ -134,18 +132,18 @@ class PariwisataController extends Controller
         ]);
 
         $file = $request->file('image');
-        $dir = public_path('uploads/pariwisata/backgrounds');
+        $dir = public_path('uploads/museum/backgrounds');
         if (!is_dir($dir)) {
             mkdir($dir, 0775, true);
         }
         $ext = $file->getClientOriginalExtension();
         $filename = now()->format('Ymd_His') . '_' . Str::random(8) . '.' . $ext;
         $file->move($dir, $filename);
-        $publicUrl = asset('uploads/pariwisata/backgrounds/' . $filename);
+        $publicUrl = asset('uploads/museum/backgrounds/' . $filename);
         return response()->json(['url' => $publicUrl]);
     }
 
-    public function storeOverlay(Request $request, Pariwisata $pariwisata)
+    public function storeOverlay(Request $request, Museum $museum)
     {
         $data = $request->validate([
             'overlay' => 'required|image|max:2048',
@@ -154,25 +152,25 @@ class PariwisataController extends Controller
             'object_fit' => 'nullable|in:contain,cover,fill,none,scale-down,crop'
         ]);
         $file = $request->file('overlay');
-        $dir = public_path('uploads/pariwisata/overlays');
+        $dir = public_path('uploads/museum/overlays');
         if (!is_dir($dir)) {
             mkdir($dir, 0775, true);
         }
         $ext = $file->getClientOriginalExtension();
         $filename = now()->format('Ymd_His') . '_' . Str::random(8) . '.' . $ext;
         $file->move($dir, $filename);
-        $publicUrl = asset('uploads/pariwisata/overlays/' . $filename);
-        PariwisataOverlays::create([
-            'pariwisata_id' => $pariwisata->id,
+        $publicUrl = asset('uploads/museum/overlays/' . $filename);
+        MuseumOverlays::create([
+            'museum_id' => $museum->id,
             'overlay_url' => $publicUrl,
             'position_horizontal' => $data['position_horizontal'] ?? 'center',
             'position_vertical' => $data['position_vertical'] ?? 'top',
             'object_fit' => $data['object_fit'] ?? 'contain',
         ]);
-        return redirect()->route('pariwisata.edit', $pariwisata->id)->with('success', 'Overlay created');
+        return redirect()->route('museum.edit', $museum->id)->with('success', 'Overlay created');
     }
 
-    public function updateOverlay(Request $request, PariwisataOverlays $overlay)
+    public function updateOverlay(Request $request, MuseumOverlays $overlay)
     {
         $data = $request->validate([
             'position_horizontal' => 'nullable|in:left,center,right',
@@ -180,49 +178,49 @@ class PariwisataController extends Controller
             'object_fit' => 'nullable|in:contain,cover,fill,none,scale-down,crop'
         ]);
         $overlay->update($data);
-        return redirect()->route('pariwisata.edit', $overlay->pariwisata_id)->with('success', 'Overlay updated');
+        return redirect()->route('museum.edit', $overlay->museum_id)->with('success', 'Overlay updated');
     }
 
-    public function deleteOverlay(PariwisataOverlays $overlay)
+    public function deleteOverlay(MuseumOverlays $overlay)
     {
-        $pid = $overlay->pariwisata_id;
+        $pid = $overlay->museum_id;
         // delete file
         $this->deleteFileIfExists($overlay->overlay_url);
         $overlay->delete();
-        return redirect()->route('pariwisata.edit', $pid)->with('success', 'Overlay deleted');
+        return redirect()->route('museum.edit', $pid)->with('success', 'Overlay deleted');
     }
 
-    public function destroy(Pariwisata $pariwisata)
+    public function destroy(Museum $museum)
     {
         // Delete background file
-        $this->deleteFileIfExists($pariwisata->background_url);
+        $this->deleteFileIfExists($museum->background_url);
         // Delete overlay files
-        foreach ($pariwisata->overlays as $ov) {
+        foreach ($museum->overlays as $ov) {
             $this->deleteFileIfExists($ov->overlay_url);
         }
         // Delete related overlays (DB cascade could also handle if FK onDelete cascade)
-        PariwisataOverlays::where('pariwisata_id', $pariwisata->id)->delete();
-        $pariwisata->delete();
-        return redirect()->route('pariwisata.index')->with('success', 'Pariwisata & files deleted');
+        MuseumOverlays::where('museum_id', $museum->id)->delete();
+        $museum->delete();
+        return redirect()->route('museum.index')->with('success', 'Museum & files deleted');
     }
 
     public function deleteMultiple(Request $request)
     {
         $data = $request->validate([
             'data' => 'required|array',
-            'data.*.id' => 'required|integer|exists:pariwisata,id'
+            'data.*.id' => 'required|integer|exists:museum,id'
         ]);
 
         $ids = collect($data['data'])->pluck('id')->unique();
-        $items = Pariwisata::with('overlays')->whereIn('id', $ids)->get();
+        $items = Museum::with('overlays')->whereIn('id', $ids)->get();
         foreach ($items as $item) {
             $this->deleteFileIfExists($item->background_url);
             foreach ($item->overlays as $ov) {
                 $this->deleteFileIfExists($ov->overlay_url);
             }
-            PariwisataOverlays::where('pariwisata_id', $item->id)->delete();
+            MuseumOverlays::where('museum_id', $item->id)->delete();
             $item->delete();
         }
-        return redirect()->route('pariwisata.index')->with('success', 'Selected pariwisata deleted');
+        return redirect()->route('museum.index')->with('success', 'Selected museum deleted');
     }
 }

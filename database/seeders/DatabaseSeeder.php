@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\Museum;
+use App\Models\MuseumOverlays;
 use App\Models\User;
-use App\Models\Pariwisata;
-use App\Models\PariwisataOverlays;
 use App\Models\Setting;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -23,13 +23,13 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('12345678'),
         ]);
 
-        // Sample pariwisata records
-        $pariwisata = Pariwisata::factory()->count(2)->create();
+        // Sample museum records
+        $museum = Museum::factory()->count(2)->create();
 
         // 5 overlay records with alignment-only schema
         foreach (range(1,5) as $i) {
-            PariwisataOverlays::factory()->create([
-                'pariwisata_id' => $pariwisata->random()->id,
+            MuseumOverlays::factory()->create([
+                'museum_id' => $museum->random()->id,
             ]);
         }
 

@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('pariwisata_overlays', function (Blueprint $table) {
+        Schema::table('museum_overlays', function (Blueprint $table) {
             // Basic Cartesian position (pixels or logical units decided by frontend)
             $table->integer('x')->default(0)->after('position');
             $table->integer('y')->default(0)->after('x');
@@ -35,7 +35,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('pariwisata_overlays', function (Blueprint $table) {
+        Schema::table('museum_overlays', function (Blueprint $table) {
             $table->dropColumn([
                 'x', 'y', 'width', 'height', 'rotation', 'scale_x', 'scale_y', 'z_index', 'opacity', 'extra'
             ]);

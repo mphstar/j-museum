@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\Pariwisata;
-use App\Models\PariwisataOverlays;
+use App\Models\Museum;
+use App\Models\MuseumOverlays;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -17,9 +17,9 @@ class DashboardController extends Controller
     {
         $stats = [
             'totalUsers' => User::count(),
-            'totalPariwisata' => Pariwisata::count(),
-            'totalOverlays' => PariwisataOverlays::count(),
-            'recentPariwisata' => Pariwisata::latest()->take(5)->get(),
+            'totalMuseum' => Museum::count(),
+            'totalOverlays' => MuseumOverlays::count(),
+            'recentMuseum' => Museum::latest()->take(5)->get(),
         ];
 
         $setting = Setting::first();
@@ -37,9 +37,9 @@ class DashboardController extends Controller
     {
         $stats = [
             'totalUsers' => User::count(),
-            'totalPariwisata' => Pariwisata::count(),
-            'totalOverlays' => PariwisataOverlays::count(),
-            'recentPariwisata' => Pariwisata::latest()->take(5)->get(),
+            'totalMuseum' => Museum::count(),
+            'totalOverlays' => MuseumOverlays::count(),
+            'recentMuseum' => Museum::latest()->take(5)->get(),
         ];
 
         return response()->json($stats);

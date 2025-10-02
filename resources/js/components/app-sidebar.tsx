@@ -31,8 +31,8 @@ const masterNavItems: NavItem[] = [
         icon: LucideUser,
     },
     {
-        title: 'Pariwisata',
-        url: '/pariwisata',
+        title: 'Museum',
+        url: '/museum',
         icon: PackageSearch,
     }
 ];

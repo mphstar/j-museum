@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pariwisata_overlays', function (Blueprint $table) {
+        Schema::create('museum_overlays', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('pariwisata_id')->constrained('pariwisata')->onDelete('cascade');
+            $table->foreignId('museum_id')->constrained('museum')->onDelete('cascade');
             $table->string('overlay_url');
             $table->string('position');
             $table->timestamps();
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('pariwisata_overlays');
+        Schema::dropIfExists('museum_overlays');
     }
 };

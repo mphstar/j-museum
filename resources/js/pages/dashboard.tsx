@@ -18,9 +18,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 interface DashboardStats {
     totalUsers: number;
-    totalPariwisata: number;
+    totalMuseum: number;
     totalOverlays: number;
-    recentPariwisata: Array<{
+    recentMuseum: Array<{
         id: number;
         title: string;
         slug: string;
@@ -62,9 +62,9 @@ export default function Dashboard({ stats, setting }: Props) {
             icon: Users,
         },
         {
-            title: 'Total Pariwisata',
-            value: stats.totalPariwisata,
-            description: 'Destinasi wisata yang dibuat',
+            title: 'Total Museum',
+            value: stats.totalMuseum,
+            description: 'Destinasi museum yang dibuat',
             icon: Image,
         },
         {
@@ -82,7 +82,7 @@ export default function Dashboard({ stats, setting }: Props) {
                 {/* Header */}
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-                    <p className="text-muted-foreground">Selamat datang kembali! Berikut yang terjadi dengan platform pariwisata Anda.</p>
+                    <p className="text-muted-foreground">Selamat datang kembali! Berikut yang terjadi dengan platform Museum Anda.</p>
                 </div>
 
                 {/* Settings Section */}
@@ -147,15 +147,15 @@ export default function Dashboard({ stats, setting }: Props) {
                 {/* Recent Activity */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>Pariwisata Terbaru</CardTitle>
-                        <CardDescription>Destinasi pariwisata yang baru dibuat</CardDescription>
+                        <CardTitle>Museum Terbaru</CardTitle>
+                        <CardDescription>Destinasi Museum yang baru dibuat</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
-                            {stats.recentPariwisata.length > 0 ? (
-                                stats.recentPariwisata.map((item) => (
+                            {stats.recentMuseum.length > 0 ? (
+                                stats.recentMuseum.map((item) => (
                                     <div key={item.id} className="flex items-center gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors cursor-pointer"
-                                         onClick={() => router.visit(route('pariwisata.edit', item.id))}>
+                                         onClick={() => router.visit(route('Museum.edit', item.id))}>
                                         <div className="flex-shrink-0">
                                             <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                                                 <Image className="h-5 w-5 text-primary" />
@@ -180,19 +180,19 @@ export default function Dashboard({ stats, setting }: Props) {
                                         variant="outline" 
                                         size="sm" 
                                         className="mt-3"
-                                        onClick={() => router.visit(route('pariwisata.create'))}
+                                        onClick={() => router.visit(route('museum.create'))}
                                     >
-                                        Buat Destinasi Pertama
+                                        Buat Museum Pertama
                                     </Button>
                                 </div>
                             )}
                         </div>
-                        {stats.recentPariwisata.length > 0 && (
+                        {stats.recentMuseum.length > 0 && (
                             <div className="pt-4 border-t">
                                 <Button 
                                     variant="outline" 
                                     className="w-full" 
-                                    onClick={() => router.visit(route('pariwisata.index'))}
+                                    onClick={() => router.visit(route('museum.index'))}
                                 >
                                     Lihat Semua Destinasi
                                 </Button>
@@ -215,18 +215,18 @@ export default function Dashboard({ stats, setting }: Props) {
                             <Button 
                                 variant="outline" 
                                 className="h-auto p-4 flex flex-col items-center gap-2"
-                                onClick={() => router.visit(route('pariwisata.create'))}
+                                onClick={() => router.visit(route('museum.create'))}
                             >
                                 <Image className="h-8 w-8" />
-                                <span className="text-sm">Destinasi Baru</span>
+                                <span className="text-sm">Museum Baru</span>
                             </Button>
                             <Button 
                                 variant="outline" 
                                 className="h-auto p-4 flex flex-col items-center gap-2"
-                                onClick={() => router.visit(route('pariwisata.index'))}
+                                onClick={() => router.visit(route('museum.index'))}
                             >
                                 <BookOpen className="h-8 w-8" />
-                                <span className="text-sm">Kelola Destinasi</span>
+                                <span className="text-sm">Kelola Museum</span>
                             </Button>
                             <Button 
                                 variant="outline" 

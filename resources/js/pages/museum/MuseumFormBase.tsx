@@ -39,7 +39,7 @@ const defaultValues = {
     align: 'left'
 };
 
-export default function PariwisataFormBase({ item, mode, overlays = [] }: Props) {
+export default function MuseumFormBase({ item, mode, overlays = [] }: Props) {
     const editing = mode === 'edit' && !!item;
     const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
 
@@ -109,7 +109,7 @@ export default function PariwisataFormBase({ item, mode, overlays = [] }: Props)
     const onSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         clearErrors();
-        const routeName = editing ? 'pariwisata.update' : 'pariwisata.store';
+        const routeName = editing ? 'museum.update' : 'museum.store';
         const url = editing ? route(routeName, item.id) : route(routeName);
         // Use FormData if file present
         let submitData: any = data;
@@ -176,7 +176,7 @@ export default function PariwisataFormBase({ item, mode, overlays = [] }: Props)
         const snapshot = overlayList;
         setOverlayList(prev => prev.filter(o => o.id !== id));
         if (activeOverlayId === id) setActiveOverlayId(null);
-        router.post(route('pariwisata.overlays.delete', id), {}, {
+        router.post(route('museum.overlays.delete', id), {}, {
             preserveScroll: true,
             onSuccess: () => toast.success('Overlay dihapus'),
             onError: () => {
@@ -204,7 +204,7 @@ export default function PariwisataFormBase({ item, mode, overlays = [] }: Props)
         if (overlay.__deleted) {
             // process delete only for existing overlay
             if (overlay.id > 0) {
-                        router.post(route('pariwisata.overlays.delete', overlay.id), {}, {
+                        router.post(route('museum.overlays.delete', overlay.id), {}, {
                             onError: () => toast.error('Gagal hapus overlay'),
                             onSuccess: () => { toast.success('Overlay dihapus'); },
                             preserveScroll: true,
@@ -220,7 +220,7 @@ export default function PariwisataFormBase({ item, mode, overlays = [] }: Props)
             if (overlay.position_horizontal) formData.append('position_horizontal', overlay.position_horizontal);
             if (overlay.position_vertical) formData.append('position_vertical', overlay.position_vertical);
             if (overlay.object_fit) formData.append('object_fit', overlay.object_fit);
-                    router.post(route('pariwisata.overlays.store', item.id), formData, {
+                    router.post(route('museum.overlays.store', item.id), formData, {
                         onError: () => toast.error('Gagal simpan overlay baru'),
                         onSuccess: () => toast.success('Overlay dibuat'),
                         preserveScroll: true,
@@ -230,7 +230,7 @@ export default function PariwisataFormBase({ item, mode, overlays = [] }: Props)
             setOverlayList(prev => prev.map(o => o.id === overlay.id ? { ...o, __unsaved: false, __dirty: false } : o));
             dirtyRef.current.delete(id);
         } else if (overlay.__dirty) {
-                    router.post(route('pariwisata.overlays.update', overlay.id), {
+                    router.post(route('museum.overlays.update', overlay.id), {
                 position_horizontal: overlay.position_horizontal,
                 position_vertical: overlay.position_vertical,
                 object_fit: overlay.object_fit
@@ -262,13 +262,13 @@ export default function PariwisataFormBase({ item, mode, overlays = [] }: Props)
                 if (c.position_horizontal) formData.append('position_horizontal', c.position_horizontal);
                 if (c.position_vertical) formData.append('position_vertical', c.position_vertical);
                 if (c.object_fit) formData.append('object_fit', c.object_fit);
-                await inertiaPost(route('pariwisata.overlays.store', item.id), formData, { forceFormData: true, onError: () => toast.error('Gagal simpan overlay baru') }).then(() => {
+                await inertiaPost(route('museum.overlays.store', item.id), formData, { forceFormData: true, onError: () => toast.error('Gagal simpan overlay baru') }).then(() => {
                     dirtyRef.current.delete(c.id);
                     setOverlayList(prev => prev.map(o => o.id === c.id ? { ...o, __unsaved: false, __dirty: false } : o));
                 }).catch(() => { });
             }
             for (const u of updates) {
-                await inertiaPost(route('pariwisata.overlays.update', u.id), {
+                await inertiaPost(route('museum.overlays.update', u.id), {
                     position_horizontal: u.position_horizontal,
                     position_vertical: u.position_vertical,
                     object_fit: u.object_fit
@@ -314,19 +314,19 @@ export default function PariwisataFormBase({ item, mode, overlays = [] }: Props)
         <div className='flex h-full w-full flex-col'>
             <div className='border-b px-4 lg:px-6 py-4 flex flex-wrap gap-3 items-center justify-between bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
                 <div className='min-w-[200px]'>
-                    <h1 className='text-lg lg:text-xl font-semibold'>{editing ? 'Edit Pariwisata' : 'Tambah Pariwisata'}</h1>
+                    <h1 className='text-lg lg:text-xl font-semibold'>{editing ? 'Edit museum' : 'Tambah museum'}</h1>
                     <p className='text-[11px] lg:text-xs text-muted-foreground'>Form + live preview (mobile pakai dialog).</p>
                 </div>
                 <div className='flex gap-2 ml-auto'>
                     {isMobile && (
                         <Button type='button' variant='secondary' onClick={() => setPreviewOpen(true)}>Preview</Button>
                     )}
-                    <Button variant='outline' type='button' onClick={() => router.visit(route('pariwisata.index'))}>Kembali</Button>
-                    <Button type='submit' form='pariwisata-form' disabled={processing}>{processing ? 'Menyimpan...' : 'Simpan'}</Button>
+                    <Button variant='outline' type='button' onClick={() => router.visit(route('museum.index'))}>Kembali</Button>
+                    <Button type='submit' form='museum-form' disabled={processing}>{processing ? 'Menyimpan...' : 'Simpan'}</Button>
                 </div>
             </div>
             <div className={cn('flex flex-1 overflow-hidden', isMobile ? 'flex-col' : '')}>
-                <form id='pariwisata-form' onSubmit={onSubmit} className={cn('shrink-0 overflow-y-auto border-r p-4 lg:p-6 space-y-4 bg-background', isMobile ? 'w-full border-r-0' : 'w-[430px]')}>
+                <form id='museum-form' onSubmit={onSubmit} className={cn('shrink-0 overflow-y-auto border-r p-4 lg:p-6 space-y-4 bg-background', isMobile ? 'w-full border-r-0' : 'w-[430px]')}>
                     <div className='space-y-2'>
                         <Label className='text-sm font-medium required'>Title</Label>
                         <Input value={data.title} onChange={e => setData('title', e.target.value)} required />

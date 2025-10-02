@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Museum;
 use App\Models\Pariwisata;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -9,9 +10,9 @@ use Illuminate\Support\Str;
 /**
  * @extends Factory<Pariwisata>
  */
-class PariwisataFactory extends Factory
+class MuseumFactory extends Factory
 {
-    protected $model = Pariwisata::class;
+    protected $model = Museum::class;
 
     public function definition(): array
     {

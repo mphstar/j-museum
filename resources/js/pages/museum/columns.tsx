@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
-export type PariwisataType = {
+export type MuseumType = {
     id: number;
     title: string;
     label: string;
@@ -28,12 +28,12 @@ export type PariwisataType = {
 
 const onDelete = (id: number) => {
     router.post(
-        route('pariwisata.destroy', id),
+        route('museum.destroy', id),
         {},
         {
             onSuccess: () => {
                 toast.success('Deleted!', {
-                    description: 'Pariwisata telah dihapus.',
+                    description: 'museum telah dihapus.',
                 });
             },
             onError: () => {
@@ -45,7 +45,7 @@ const onDelete = (id: number) => {
     );
 };
 
-export const columns: ColumnDef<PariwisataType>[] = [
+export const columns: ColumnDef<MuseumType>[] = [
     {
         id: 'select',
         header: ({ table }) => (
@@ -197,7 +197,7 @@ export const columns: ColumnDef<PariwisataType>[] = [
                         <DropdownMenuSeparator /> */}
                             <DropdownMenuItem
                                 onSelect={() => {
-                                    router.visit(route('pariwisata.edit', payment.id));
+                                    router.visit(route('museum.edit', payment.id));
                                 }}
                             >Edit Data</DropdownMenuItem>
                             <DropdownMenuItem

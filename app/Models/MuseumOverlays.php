@@ -5,20 +5,20 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class PariwisataOverlays extends Model
+class MuseumOverlays extends Model
 {
     use HasFactory;
-    protected $table = 'pariwisata_overlays';
+    protected $table = 'museum_overlays';
     protected $fillable = [
-        'pariwisata_id',
+        'museum_id',
         'overlay_url',
         'position_horizontal','position_vertical','object_fit'
     ];
 
     protected $casts = [];
 
-    public function pariwisata()
+    public function museum()
     {
-        return $this->belongsTo(Pariwisata::class);
+        return $this->belongsTo(Museum::class);
     }
 }

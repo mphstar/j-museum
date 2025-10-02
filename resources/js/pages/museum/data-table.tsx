@@ -57,14 +57,14 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
         });
 
         router.post(
-            route('pariwisata.delete-multiple'),
+            route('museum.delete-multiple'),
             {
                 data: payloadRequest,
             },
             {
                 onSuccess: () => {
                     toast.success('Deleted!', {
-                        description: 'Data pariwisata terpilih telah dihapus.',
+                        description: 'Data museum terpilih telah dihapus.',
                     });
                 },
                 onError: () => {

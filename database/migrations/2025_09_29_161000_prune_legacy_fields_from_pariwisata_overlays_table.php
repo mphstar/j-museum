@@ -7,9 +7,9 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::table('pariwisata_overlays', function (Blueprint $table) {
+        Schema::table('museum_overlays', function (Blueprint $table) {
             // Drop legacy freeform layout fields no longer needed
-            if (Schema::hasColumn('pariwisata_overlays','x')) {
+            if (Schema::hasColumn('museum_overlays','x')) {
                 $table->dropColumn(['x','y','width','height','rotation','scale_x','scale_y','z_index','opacity','extra','position']);
             }
         });
@@ -17,7 +17,7 @@ return new class extends Migration {
 
     public function down(): void
     {
-        Schema::table('pariwisata_overlays', function (Blueprint $table) {
+        Schema::table('museum_overlays', function (Blueprint $table) {
             // Re-create columns (best-effort defaults) if rollback
             $table->string('position')->nullable();
             $table->integer('x')->default(0);

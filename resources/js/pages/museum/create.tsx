@@ -1,19 +1,19 @@
 import React from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { Head, usePage } from '@inertiajs/react';
-import PariwisataFormBase from './PariwisataFormBase';
 import { type BreadcrumbItem } from '@/types';
+import MuseumFormBase from './MuseumFormBase';
 
 const breadcrumbs: BreadcrumbItem[] = [
-  { title: 'Pariwisata', href: '/pariwisata' },
+  { title: 'Museum', href: '/museum' },
   { title: 'Tambah', href: '#' }
 ];
 
-export default function CreatePariwisata() {
+export default function CreateMuseum() {
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title='Tambah Pariwisata' />
-      <PariwisataFormBase mode='create' />
+      <Head title='Tambah Museum' />
+      <MuseumFormBase mode='create' />
     </AppLayout>
   );
 }
