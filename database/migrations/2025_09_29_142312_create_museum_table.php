@@ -22,6 +22,12 @@ return new class extends Migration
             $table->string('cta_href')->nullable();
             $table->string('cta_label')->nullable();
             $table->enum('align', ['left', 'right'])->default('left');
+
+            
+            $table->decimal('latitude', 10, 8)->nullable();
+            $table->decimal('longitude', 11, 8)->nullable();
+
+
             $table->timestamps();
         });
     }

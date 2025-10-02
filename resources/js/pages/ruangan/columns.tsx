@@ -1,7 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { DeleteConfirmAlert } from '@/components/ui/delete-confirm-alert'; // (unused after refactor, consider removing)
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import useProductStore from '@/stores/useProduct';
@@ -11,29 +10,25 @@ import { ArrowUpDown, MoreHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
 
 // This type is used to define the shape of our data.
-// You can use a Zod schema here if you want.
-export type MuseumType = {
+export type RuanganType = {
     id: number;
-    title: string;
-    label: string;
-    subtitle: string;
+    museum_id: number;
+    nama_ruangan: string;
     slug: string;
-    content: string;
-    background_url: string;
-    cta_href: string;
-    cta_label: string;
-    align: string;
+    is_main: boolean;
+    panorama_url: string;
+    audio_guide_url: string;
     created_at: string;
 };
 
-const onDelete = (id: number) => {
+const onDelete = (id: number, museumId: number) => {
     router.post(
-        route('museum.destroy', id),
+        route('museum.ruangan.destroy', [museumId, id]),
         {},
         {
             onSuccess: () => {
                 toast.success('Deleted!', {
-                    description: 'museum telah dihapus.',
+                    description: 'Ruangan telah dihapus.',
                 });
             },
             onError: () => {
@@ -45,7 +40,7 @@ const onDelete = (id: number) => {
     );
 };
 
-export const columns: ColumnDef<MuseumType>[] = [
+export const columns: ColumnDef<RuanganType>[] = [
     {
         id: 'select',
         header: ({ table }) => (
@@ -66,35 +61,12 @@ export const columns: ColumnDef<MuseumType>[] = [
         header: '#',
         cell: ({ row }) => row.index + 1,
     },
-
     {
-        accessorKey: 'title',
+        accessorKey: 'nama_ruangan',
         header: ({ column }) => {
             return (
                 <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')} className="flex items-center gap-2">
-                    Title
-                    <ArrowUpDown className="h-4 w-4" />
-                </Button>
-            );
-        },
-    },
-    {
-        accessorKey: 'label',
-        header: ({ column }) => {
-            return (
-                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')} className="flex items-center gap-2">
-                    Label
-                    <ArrowUpDown className="h-4 w-4" />
-                </Button>
-            );
-        },
-    },
-    {
-        accessorKey: 'subtitle',
-        header: ({ column }) => {
-            return (
-                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')} className="flex items-center gap-2">
-                    Subtitle
+                    Nama Ruangan
                     <ArrowUpDown className="h-4 w-4" />
                 </Button>
             );
@@ -112,58 +84,49 @@ export const columns: ColumnDef<MuseumType>[] = [
         },
     },
     {
-        accessorKey: 'content',
+        accessorKey: 'is_main',
         header: ({ column }) => {
             return (
                 <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')} className="flex items-center gap-2">
-                    Content
+                    Main Room
                     <ArrowUpDown className="h-4 w-4" />
                 </Button>
             );
         },
-    },
-
-    {
-        accessorKey: 'background_url',
-        header: ({ column }) => {
+        cell: ({ cell }) => {
+            const isMain = cell.getValue<boolean>();
             return (
-                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')} className="flex items-center gap-2">
-                    Background URL
-                    <ArrowUpDown className="h-4 w-4" />
-                </Button>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    isMain 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-gray-100 text-gray-800'
+                }`}>
+                    {isMain ? 'Main' : 'Regular'}
+                </span>
             );
         },
     },
     {
-        accessorKey: 'cta_href',
-        header: ({ column }) => {
-            return (
-                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')} className="flex items-center gap-2">
-                    CTA Href
-                    <ArrowUpDown className="h-4 w-4" />
-                </Button>
+        accessorKey: 'panorama_url',
+        header: 'Panorama',
+        cell: ({ cell }) => {
+            const url = cell.getValue<string>();
+            return url ? (
+                <span className="text-green-600 text-sm">✓ Available</span>
+            ) : (
+                <span className="text-red-600 text-sm">✗ Not set</span>
             );
         },
     },
     {
-        accessorKey: 'cta_label',
-        header: ({ column }) => {
-            return (
-                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')} className="flex items-center gap-2">
-                    CTA Label
-                    <ArrowUpDown className="h-4 w-4" />
-                </Button>
-            );
-        },
-    },
-    {
-        accessorKey: 'align',
-        header: ({ column }) => {
-            return (
-                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')} className="flex items-center gap-2">
-                    Align
-                    <ArrowUpDown className="h-4 w-4" />
-                </Button>
+        accessorKey: 'audio_guide_url',
+        header: 'Audio Guide',
+        cell: ({ cell }) => {
+            const url = cell.getValue<string>();
+            return url ? (
+                <span className="text-green-600 text-sm">✓ Available</span>
+            ) : (
+                <span className="text-red-600 text-sm">✗ Not set</span>
             );
         },
     },
@@ -178,7 +141,7 @@ export const columns: ColumnDef<MuseumType>[] = [
     {
         id: 'actions',
         cell: ({ row }) => {
-            const payment = row.original;
+            const ruangan = row.original;
             const store = useProductStore();
             const [deleteOpen, setDeleteOpen] = React.useState(false);
 
@@ -193,18 +156,16 @@ export const columns: ColumnDef<MuseumType>[] = [
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            {/* <DropdownMenuItem onClick={() => navigator.clipboard.writeText(payment.id)}>Copy payment ID</DropdownMenuItem>
-                        <DropdownMenuSeparator /> */}
                             <DropdownMenuItem
                                 onSelect={() => {
-                                    router.visit(route('museum.edit', payment.id));
+                                    router.visit(route('museum.ruangan.edit', [ruangan.museum_id, ruangan.id]));
                                 }}
                             >Edit Data</DropdownMenuItem>
                             <DropdownMenuItem
                                 onSelect={() => {
-                                    router.visit(route('museum.ruangan.index', payment.id));
+                                    router.visit(route('museum.ruangan.markers.manage', [ruangan.museum_id, ruangan.id]));
                                 }}
-                            >Kelola Ruangan</DropdownMenuItem>
+                            >Kelola Marker</DropdownMenuItem>
                             <DropdownMenuItem
                                 onSelect={() => {
                                     // Tutup dialog edit jika masih terbuka agar tidak ada dua overlay menumpuk
@@ -227,14 +188,14 @@ export const columns: ColumnDef<MuseumType>[] = [
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Hapus Data?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    Tindakan ini tidak dapat dibatalkan dan akan menghapus data beserta file terkait.
+                                    Tindakan ini tidak dapat dibatalkan dan akan menghapus ruangan beserta semua marker dan file terkait.
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                                 <AlertDialogCancel onClick={() => setDeleteOpen(false)}>Cancel</AlertDialogCancel>
                                 <AlertDialogAction
                                     onClick={() => {
-                                        onDelete(payment.id);
+                                        onDelete(ruangan.id, ruangan.museum_id);
                                         setDeleteOpen(false);
                                     }}
                                 >Delete</AlertDialogAction>

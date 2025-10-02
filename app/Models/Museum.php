@@ -18,4 +18,9 @@ class Museum extends Model
     {
         return $this->hasMany(MuseumOverlays::class, 'museum_id');
     }
+
+    public function ruangan()
+    {
+        return $this->hasMany(Ruangan::class, 'museum_id');
+    }
 }

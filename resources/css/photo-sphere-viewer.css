@@ -1,0 +1,250 @@
+@import '@photo-sphere-viewer/core/index.css';
+@import '@photo-sphere-viewer/markers-plugin/index.css';
+
+/* Custom marker styles */
+@keyframes markerPulse {
+  0% { 
+    transform: scale(1); 
+    opacity: 0.6; 
+  }
+  50% { 
+    transform: scale(1.2); 
+    opacity: 0.8; 
+  }
+  100% { 
+    transform: scale(1); 
+    opacity: 0.6; 
+  }
+}
+
+@keyframes markerBounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Custom marker hover effects */
+.custom-marker:hover {
+  transform: scale(1.1) !important;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.6) !important;
+}
+
+.custom-marker:hover .marker-pulse {
+  animation-duration: 1s !important;
+}
+
+/* True Chroma Key Greenscreen Removal */
+.greenscreen-video-marker video,
+.temp-greenscreen-video {
+  /* Method 1: Advanced hue rotation to isolate green */
+  filter: 
+    /* Step 1: Rotate hue to move green to a specific range */
+    hue-rotate(240deg) 
+    /* Step 2: Desaturate to remove color intensity */
+    saturate(0.1) 
+    /* Step 3: High contrast to separate foreground/background */
+    contrast(5) 
+    /* Step 4: Brightness adjustment */
+    brightness(2) 
+    /* Step 5: Rotate hue back */
+    hue-rotate(-240deg) 
+    /* Step 6: Restore some saturation */
+    saturate(2) 
+    /* Step 7: Final brightness correction */
+    brightness(0.4) 
+    /* Step 8: Final contrast adjustment */
+    contrast(1.8);
+  
+  /* Method 2: Multiply blend mode for transparency */
+  mix-blend-mode: multiply;
+  
+  /* Method 3: Advanced masking based on luminosity */
+  -webkit-mask-image: 
+    /* Luminosity-based mask */
+    linear-gradient(to bottom, 
+      rgba(0,0,0,1) 0%, 
+      rgba(0,0,0,1) 20%, 
+      rgba(0,0,0,0.8) 40%, 
+      rgba(0,0,0,0.6) 60%, 
+      rgba(0,0,0,0.3) 80%, 
+      rgba(0,0,0,0) 100%),
+    /* Radial mask for circular effect */
+    radial-gradient(circle at center, 
+      rgba(0,0,0,1) 25%, 
+      rgba(0,0,0,0.9) 40%, 
+      rgba(0,0,0,0.7) 55%, 
+      rgba(0,0,0,0.4) 70%, 
+      rgba(0,0,0,0) 85%);
+  
+  mask-image: 
+    linear-gradient(to bottom, 
+      rgba(0,0,0,1) 0%, 
+      rgba(0,0,0,1) 20%, 
+      rgba(0,0,0,0.8) 40%, 
+      rgba(0,0,0,0.6) 60%, 
+      rgba(0,0,0,0.3) 80%, 
+      rgba(0,0,0,0) 100%),
+    radial-gradient(circle at center, 
+      rgba(0,0,0,1) 25%, 
+      rgba(0,0,0,0.9) 40%, 
+      rgba(0,0,0,0.7) 55%, 
+      rgba(0,0,0,0.4) 70%, 
+      rgba(0,0,0,0) 85%);
+  
+  -webkit-mask-composite: intersect;
+  mask-composite: intersect;
+}
+
+/* Alternative approach using backdrop-filter for browsers that support it */
+@supports (backdrop-filter: blur(1px)) {
+  .greenscreen-video-marker video[data-chroma="green"] {
+    /* CSS-only chroma key using backdrop effects */
+    backdrop-filter: 
+      hue-rotate(120deg) 
+      saturate(0) 
+      brightness(3) 
+      contrast(3) 
+      hue-rotate(-120deg);
+    
+    /* Enhanced transparency */
+    background-color: transparent;
+    background-blend-mode: multiply;
+  }
+}
+
+/* Experimental: Using CSS custom properties for real-time chroma adjustment */
+.greenscreen-video-marker video {
+  --chroma-hue: 120deg;
+  --chroma-sat: 0.1;
+  --chroma-bright: 2;
+  --chroma-contrast: 4;
+  
+  filter: 
+    hue-rotate(var(--chroma-hue)) 
+    saturate(var(--chroma-sat)) 
+    brightness(var(--chroma-bright)) 
+    contrast(var(--chroma-contrast)) 
+    hue-rotate(calc(-1 * var(--chroma-hue))) 
+    saturate(2) 
+    brightness(0.5) 
+    contrast(1.5);
+}
+
+/* Hover effects for greenscreen video */
+.greenscreen-video-marker:hover video {
+  filter: 
+    contrast(1.8) 
+    brightness(1.5) 
+    saturate(0.7) 
+    hue-rotate(-25deg)
+    sepia(0.3);
+  
+  transform: scale(1.1);
+  box-shadow: 
+    0 0 30px rgba(255,255,255,0.3),
+    inset 0 0 30px rgba(255,255,255,0.2);
+}
+
+/* Fallback for older browsers */
+@supports not (mix-blend-mode: screen) {
+  .greenscreen-video-marker video {
+    /* Fallback greenscreen using backdrop-filter */
+    backdrop-filter: 
+      contrast(1.5) 
+      brightness(1.2) 
+      saturate(0.8);
+    
+    /* Alternative transparency approach */
+    opacity: 0.85;
+    background: 
+      radial-gradient(circle at center, 
+        transparent 40%, 
+        rgba(0,255,0,0.1) 100%);
+  }
+}
+
+/* Temp greenscreen video preview */
+.temp-greenscreen-video {
+  /* Enhanced preview filters */
+  filter: 
+    contrast(1.4) 
+    brightness(1.2) 
+    saturate(0.8) 
+    hue-rotate(-10deg);
+  
+  /* Preview blend mode */
+  mix-blend-mode: screen;
+  background: transparent;
+  
+  /* Subtle mask for preview */
+  -webkit-mask: 
+    radial-gradient(circle at center, 
+      rgba(0,0,0,1) 45%, 
+      rgba(0,0,0,0.7) 80%, 
+      rgba(0,0,0,0) 100%);
+  mask: 
+    radial-gradient(circle at center, 
+      rgba(0,0,0,1) 45%, 
+      rgba(0,0,0,0.7) 80%, 
+      rgba(0,0,0,0) 100%);
+}
+
+/* Image marker styles */
+.custom-image-marker {
+  border-radius: 50% !important;
+  overflow: hidden;
+  border: 3px solid white;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  transition: all 0.3s ease;
+}
+
+.custom-image-marker:hover {
+  transform: scale(1.15);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.6);
+}
+
+.custom-image-marker img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Marker type specific colors and animations */
+.custom-marker-info {
+  animation: markerPulse 2s infinite;
+}
+
+.custom-marker-navigation {
+  animation: markerBounce 1.5s infinite;
+}
+
+.custom-marker-audio {
+  animation: markerPulse 1.5s infinite;
+}
+
+.custom-marker-video {
+  animation: markerPulse 2.5s infinite;
+}
+
+/* Greenscreen video support */
+.psv-marker-video-layer {
+  mix-blend-mode: multiply;
+  filter: brightness(1.2) contrast(1.1);
+}
+
+/* Enhanced tooltip styles */
+.psv-tooltip {
+  background: rgba(0, 0, 0, 0.9) !important;
+  color: white !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  font-size: 14px !important;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}

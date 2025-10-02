@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\MuseumController;
+use App\Http\Controllers\Admin\RuanganController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\DashboardController;
@@ -42,6 +43,43 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('{museum}/overlays', [MuseumController::class, 'storeOverlay'])->name('museum.overlays.store');
         Route::post('overlays/{overlay}', [MuseumController::class, 'updateOverlay'])->name('museum.overlays.update');
         Route::post('overlays/{overlay}/delete', [MuseumController::class, 'deleteOverlay'])->name('museum.overlays.delete');
+
+        // Ruangan routes nested under museum
+        Route::prefix('{museum}/ruangan')->where(['museum' => '[0-9]+', 'ruangan' => '[0-9]+'])->group(function () {
+            Route::get('/', [RuanganController::class, 'index'])->name('museum.ruangan.index');
+            Route::get('create', [RuanganController::class, 'create'])->name('museum.ruangan.create');
+            Route::post('store', [RuanganController::class, 'store'])->name('museum.ruangan.store');
+            Route::get('edit/{ruangan}', [RuanganController::class, 'edit'])->name('museum.ruangan.edit');
+            Route::post('update/{ruangan}', [RuanganController::class, 'update'])->name('museum.ruangan.update');
+            Route::post('delete/{ruangan}', [RuanganController::class, 'destroy'])->name('museum.ruangan.destroy');
+            Route::post('delete-multiple', [RuanganController::class, 'deleteMultiple'])->name('museum.ruangan.delete-multiple');
+            Route::post('upload-panorama', [RuanganController::class, 'uploadPanorama'])->name('museum.ruangan.upload-panorama');
+            Route::post('upload-audio-guide', [RuanganController::class, 'uploadAudioGuide'])->name('museum.ruangan.upload-audio-guide');
+
+            // Markers
+            Route::get('{ruangan}/markers', [RuanganController::class, 'manageMarkers'])->name('museum.ruangan.markers.manage');
+            Route::post('{ruangan}/markers', [RuanganController::class, 'storeMarker'])->name('museum.ruangan.markers.store');
+            Route::post('{ruangan}/markers/{marker}', [RuanganController::class, 'updateMarker'])->name('museum.ruangan.markers.update')->where('marker', '[0-9]+');
+            Route::delete('{ruangan}/markers/{marker}/media', [RuanganController::class, 'deleteMarkerMedia'])->name('museum.ruangan.markers.delete-media')->where('marker', '[0-9]+');
+            Route::delete('{ruangan}/markers/{marker}', [RuanganController::class, 'destroyMarker'])->name('museum.ruangan.markers.destroy')->where('marker', '[0-9]+');
+        });
+    });
+
+    Route::prefix('ruangan')->group(function () {
+        Route::get('/', [RuanganController::class, 'index'])->name('ruangan.index');
+        Route::get('create', [RuanganController::class, 'create'])->name('ruangan.create');
+        Route::post('store', [RuanganController::class, 'store'])->name('ruangan.store');
+        Route::get('edit/{ruangan}', [RuanganController::class, 'edit'])->name('ruangan.edit');
+        Route::post('update/{ruangan}', [RuanganController::class, 'update'])->name('ruangan.update');
+        Route::post('delete/{ruangan}', [RuanganController::class, 'destroy'])->name('ruangan.destroy');
+        Route::post('delete-multiple', [RuanganController::class, 'deleteMultiple'])->name('ruangan.delete-multiple');
+        Route::post('upload-panorama', [RuanganController::class, 'uploadPanorama'])->name('ruangan.upload-panorama');
+        Route::post('upload-audio-guide', [RuanganController::class, 'uploadAudioGuide'])->name('ruangan.upload-audio-guide');
+
+        // Markers
+        Route::post('{ruangan}/markers', [RuanganController::class, 'storeMarker'])->name('ruangan.markers.store');
+        Route::post('markers/{marker}', [RuanganController::class, 'updateMarker'])->name('ruangan.markers.update');
+        Route::post('markers/{marker}/delete', [RuanganController::class, 'deleteMarker'])->name('ruangan.markers.delete');
     });
 
     Route::prefix('settings')->group(function () {
