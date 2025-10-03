@@ -91,7 +91,7 @@ class RuanganController extends Controller
         
         $item = Ruangan::create($validated);
 
-        return redirect()->route('museum.ruangan.edit', [$museum->id, $item->id])->with('success', 'Ruangan created. Silakan lanjut menambah marker.');
+        return redirect()->route('museum.ruangan.index', [$museum->id])->with('success', 'Ruangan created. Silakan lanjut menambah marker.');
     }
 
     public function update(Request $request, Museum $museum, Ruangan $ruangan)

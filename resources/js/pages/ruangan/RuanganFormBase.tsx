@@ -119,6 +119,9 @@ export default function RuanganFormBase({ item, mode, museum }: Props) {
                 toast.success('Success!', {
                     description: editing ? 'Ruangan berhasil diupdate' : 'Ruangan berhasil dibuat'
                 });
+                
+                // Redirect ke halaman list ruangan setelah berhasil simpan
+                router.visit(route('museum.ruangan.index', museum.id));
             },
             onError: (errors) => {
                 toast.error('Error!', {

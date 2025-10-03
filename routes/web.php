@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\RuanganController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\FrontendController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -14,6 +15,13 @@ Route::get('/', function () {
 Route::get('/glitchtip/error', function () {
     throw new Exception('My first GlitchTip error!');
 });
+
+Route::get('/view', [FrontendController::class, 'index'])->name('frontend.index');
+
+// Public panorama viewer routes
+Route::get('/museum/{museum}', [FrontendController::class, 'showPanorama'])
+    ->name('frontend.panorama')
+    ->where(['museum' => '[0-9]+']);
 
 Route::middleware(['auth', 'verified'])->group(function () {
 

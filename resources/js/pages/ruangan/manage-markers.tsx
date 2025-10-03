@@ -972,7 +972,7 @@ export default function ManageMarkers() {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => router.visit(route('museum.ruangan.edit', [museum.id, ruangan.id]))}
+                  onClick={() => router.visit(route('museum.ruangan.index', [museum.id]))}
                   className="gap-2 w-fit"
                 >
                   <ArrowLeft size={16} />
