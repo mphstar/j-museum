@@ -49,6 +49,8 @@ class MuseumController extends Controller
             'cta_href' => 'nullable|string|max:255',
             'cta_label' => 'nullable|string|max:255',
             'align' => 'required|in:left,right',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
         ]);
 
         if (empty($validated['slug'])) {
@@ -91,6 +93,8 @@ class MuseumController extends Controller
             'cta_href' => 'nullable|string|max:255',
             'cta_label' => 'nullable|string|max:255',
             'align' => 'required|in:left,right',
+            'latitude' => 'nullable|numeric|between:-90,90',
+            'longitude' => 'nullable|numeric|between:-180,180',
         ]);
 
         if ($request->hasFile('background_image')) {

@@ -2,8 +2,9 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Head, usePage, router } from '@inertiajs/react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Volume2, VolumeX, Info, Navigation } from 'lucide-react';
+import { ArrowLeft, Volume2, VolumeX, Info, Navigation, Menu } from 'lucide-react';
 import { toast } from 'sonner';
+import MuseumInfoSidebar from '@/components/MuseumInfoSidebar';
 import '../../../css/photo-sphere-viewer.css';
 
 // Add marker styles
@@ -53,6 +54,7 @@ export default function PanoramaViewer() {
   const [selectedMarker, setSelectedMarker] = useState<any>(null);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [showVisitorGuide, setShowVisitorGuide] = useState(true); // Show guide on first load
+  const [showSidebar, setShowSidebar] = useState(false); // Sidebar state
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Check localStorage for visitor guide preference
@@ -137,19 +139,26 @@ export default function PanoramaViewer() {
     
     console.log('Switching from:', activeRuangan?.nama_ruangan, 'to:', targetRuangan.nama_ruangan);
     
-    // Simple state update without complex transitions
-    setActiveRuangan(targetRuangan);
-    setActiveMarkers(targetRuangan.markers || []);
+    // Set transitioning state to prevent multiple rapid switches
+    setIsTransitioning(true);
+    setPanoramaLoaded(false);
     
-    // Update URL
-    const newUrl = `/museum/${museum.id}#ruangan-${targetRuangan.id}`;
-    window.history.pushState({ ruanganId: targetRuangan.id }, '', newUrl);
-    
-    // Close dialogs
-    setShowInfoDialog(false);
-    setSelectedMarker(null);
-    
-    toast.success(`Berpindah ke ${targetRuangan.nama_ruangan}`);
+    // Use setTimeout to ensure state updates are processed
+    setTimeout(() => {
+      // Update state
+      setActiveRuangan(targetRuangan);
+      setActiveMarkers(targetRuangan.markers || []);
+      
+      // Update URL
+      const newUrl = `/museum/${museum.id}#ruangan-${targetRuangan.id}`;
+      window.history.pushState({ ruanganId: targetRuangan.id }, '', newUrl);
+      
+      // Close dialogs
+      setShowInfoDialog(false);
+      setSelectedMarker(null);
+      
+      toast.success(`Berpindah ke ${targetRuangan.nama_ruangan}`);
+    }, 100);
   }, [allRuangan, museum.id, activeRuangan]);
 
   // Create video marker element with greenscreen removal
@@ -458,16 +467,12 @@ export default function PanoramaViewer() {
 
   // Initialize Photo Sphere Viewer
   useEffect(() => {
-    if (!viewerRef.current || !activeRuangan?.panorama_url) {
-      console.log('Viewer initialization skipped:', {
-        hasContainer: !!viewerRef.current,
-        hasPanorama: !!activeRuangan?.panorama_url,
-        activeRuangan: activeRuangan?.nama_ruangan
-      });
+    if (!activeRuangan?.panorama_url) {
+      console.log('No panorama URL for:', activeRuangan?.nama_ruangan);
       return;
     }
 
-    console.log('Initializing viewer for:', activeRuangan.nama_ruangan);
+    console.log('Viewer effect triggered for:', activeRuangan.nama_ruangan);
     
     // Reset loading state
     setPanoramaLoaded(false);
@@ -475,6 +480,21 @@ export default function PanoramaViewer() {
 
     const initViewer = async () => {
       try {
+        // Wait for container to be available
+        let attempts = 0;
+        while (!viewerRef.current && attempts < 10) {
+          console.log('Waiting for container, attempt:', attempts + 1);
+          await new Promise(resolve => setTimeout(resolve, 100));
+          attempts++;
+        }
+
+        if (!viewerRef.current) {
+          console.error('Container element not found after waiting');
+          return;
+        }
+
+        console.log('Container found, initializing viewer for:', activeRuangan.nama_ruangan);
+
         // Destroy existing viewer first
         if (viewer) {
           console.log('Destroying existing viewer...');
@@ -484,11 +504,21 @@ export default function PanoramaViewer() {
             console.log('Error destroying viewer:', e);
           }
           setViewer(null);
+          // Add small delay after destroying
+          await new Promise(resolve => setTimeout(resolve, 100));
         }
 
-        // Clear container
+        // Clear container and ensure it's ready
         if (viewerRef.current) {
           viewerRef.current.innerHTML = '';
+          // Add small delay to ensure DOM is updated
+          await new Promise(resolve => setTimeout(resolve, 50));
+        }
+
+        // Check container again before creating viewer
+        if (!viewerRef.current) {
+          console.error('Container disappeared during initialization');
+          return;
         }
 
         const { Viewer } = await import('@photo-sphere-viewer/core');
@@ -498,7 +528,7 @@ export default function PanoramaViewer() {
         console.log('Generated markers for viewer:', generatedMarkers);
 
         const newViewer = new Viewer({
-          container: viewerRef.current!,
+          container: viewerRef.current,
           panorama: activeRuangan.panorama_url,
           plugins: [
             [MarkersPlugin, {
@@ -556,13 +586,21 @@ export default function PanoramaViewer() {
       }
     };
 
-    initViewer();
+    // Add small delay before initialization to ensure DOM is stable
+    const timeoutId = setTimeout(() => {
+      initViewer();
+    }, 50);
 
     // Cleanup function
     return () => {
+      clearTimeout(timeoutId);
       if (viewer) {
         console.log('Cleaning up viewer...');
-        viewer.destroy();
+        try {
+          viewer.destroy();
+        } catch (e) {
+          console.log('Error during cleanup:', e);
+        }
       }
     };
   }, [activeRuangan, activeMarkers, generateMarkers, switchToRoom]);
@@ -634,7 +672,7 @@ export default function PanoramaViewer() {
       
       <div className="h-screen w-screen bg-black relative overflow-hidden">
         {/* Header */}
-        <div className="absolute top-0 left-0 right-0 z-50 bg-gradient-to-b from-black/70 to-transparent p-4 overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 z-[70] bg-gradient-to-b from-black/70 to-transparent p-4 overflow-hidden">
           <div className="flex items-center justify-between w-full max-w-full">
             <div className="flex items-center gap-4 min-w-0 flex-1">
               <Button
@@ -652,6 +690,21 @@ export default function PanoramaViewer() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Middle Left Trigger Button */}
+        <div className={`fixed left-4 top-1/2 transform -translate-y-1/2 z-[70] transition-all duration-300 ${
+          showSidebar ? 'opacity-0 pointer-events-none' : 'opacity-100'
+        }`}>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => setShowSidebar(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 rounded-full p-3"
+            title="Menu Museum"
+          >
+            <Menu className="w-5 h-5" />
+          </Button>
         </div>
 
         {/* Panorama Viewer */}
@@ -838,6 +891,16 @@ export default function PanoramaViewer() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Museum Info Sidebar */}
+        <MuseumInfoSidebar
+          museum={museum}
+          allRuangan={allRuangan}
+          activeRuangan={activeRuangan}
+          onRoomChange={switchToRoom}
+          isOpen={showSidebar}
+          onClose={() => setShowSidebar(false)}
+        />
       </div>
     </>
   );

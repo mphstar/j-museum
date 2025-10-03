@@ -11,7 +11,7 @@ class Museum extends Model
     protected $table = 'museum';
 
     protected $fillable = [
-        'title','label','subtitle','slug','content','background_url','cta_href','cta_label','align'
+        'title','label','subtitle','slug','content','background_url','cta_href','cta_label','align','latitude','longitude'
     ];
 
     public function overlays()

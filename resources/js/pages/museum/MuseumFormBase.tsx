@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Label } from '@/components/ui/label';
+import LocationPicker from '@/components/LocationPicker';
 
 interface OverlayType {
     id: number;
@@ -36,7 +37,9 @@ const defaultValues = {
     background_url: '',
     cta_href: '',
     cta_label: '',
-    align: 'left'
+    align: 'left',
+    latitude: null as number | null,
+    longitude: null as number | null
 };
 
 export default function MuseumFormBase({ item, mode, overlays = [] }: Props) {
@@ -383,6 +386,28 @@ export default function MuseumFormBase({ item, mode, overlays = [] }: Props) {
                             <option value='left'>Left</option>
                             <option value='right'>Right</option>
                         </select>
+                    </div>
+                    <div className='space-y-2'>
+                        <Label className='text-sm font-medium'>Lokasi Museum</Label>
+                        <p className='text-xs text-muted-foreground mb-2'>
+                            Klik pada peta untuk menentukan lokasi museum. Koordinat akan tersimpan otomatis.
+                        </p>
+                        <LocationPicker
+                            latitude={data.latitude}
+                            longitude={data.longitude}
+                            onLocationChange={(lat, lng) => {
+                                setData('latitude', lat);
+                                setData('longitude', lng);
+                            }}
+                            className="h-48 w-full"
+                        />
+                        {(data.latitude && data.longitude) && (
+                            <div className='text-xs text-muted-foreground mt-2'>
+                                Koordinat: {data.latitude.toFixed(6)}, {data.longitude.toFixed(6)}
+                            </div>
+                        )}
+                        {errors.latitude && <p className='text-xs text-red-500'>{errors.latitude}</p>}
+                        {errors.longitude && <p className='text-xs text-red-500'>{errors.longitude}</p>}
                     </div>
                 </form>
                 {!isMobile && (
