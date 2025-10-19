@@ -23,7 +23,7 @@ export default function Ruangan() {
             <Head title={`Ruangan - ${museum.title}`} />
             <div className="flex h-full w-full flex-col">
                 {/* Header Section */}
-                <div className="bg-white border-b px-6 py-4">
+                <div className="border-b px-6 py-4">
                     <div className="flex items-center justify-between">
                         <div className="flex flex-col gap-4">
                             <Button 

@@ -5,7 +5,8 @@ import { MapPin, Info, X, Map, Navigation, Building2 } from 'lucide-react';
 import RoomListDialog from './RoomListDialog';
 
 // Dynamic import for Leaflet to avoid SSR issues
-const LocationMapDialog = React.lazy(() => import('../Pages/frontend/LocationMapDialog'));
+// NOTE: path casing must match actual filesystem path to avoid TS casing conflicts
+const LocationMapDialog = React.lazy(() => import('../pages/frontend/LocationMapDialog'));
 
 interface MuseumInfoSidebarProps {
   museum: any;

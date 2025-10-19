@@ -966,7 +966,7 @@ export default function ManageMarkers() {
         {/* Left Panel - Panorama Viewer */}
         <div className="flex-1 flex flex-col">
           {/* Header */}
-          <div className="bg-white border-b px-6 py-4">
+          <div className="   border-b px-6 py-4 dark:border-gray-800">
             <div className="flex items-center justify-between">
               <div className="flex flex-col gap-4">
                 <Button 
@@ -1050,12 +1050,12 @@ export default function ManageMarkers() {
         </div>
 
         {/* Right Panel - Marker List */}
-        <div className="w-80 bg-white border-l flex flex-col">
+  <div className="w-80   border-l flex flex-col dark:border-gray-800">
           {/* Stats */}
           <div className="p-4 border-b">
             <h3 className="font-semibold mb-3">Statistik Marker</h3>
             <div className="space-y-2">
-              <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+              <div className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded">
                 <span className="text-sm font-medium">Total</span>
                 <span className="font-bold">{markers?.length || 0}</span>
               </div>
@@ -1088,8 +1088,8 @@ export default function ManageMarkers() {
                     return (
                       <div 
                         key={marker.id} 
-                        className={`p-3 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer ${
-                          selectedMarkerId === marker.id ? 'ring-2 ring-blue-500 bg-blue-50' : ''
+                        className={`p-3 border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer ${
+                          selectedMarkerId === marker.id ? 'ring-2 ring-blue-500 dark:ring-blue-400 bg-blue-50 dark:bg-blue-950/30' : 'dark:border-gray-700'
                         }`}
                         onClick={() => {
                           setSelectedMarkerId(marker.id);
@@ -1127,13 +1127,13 @@ export default function ManageMarkers() {
                             </div>
                             
                             {marker.deskripsi && (
-                              <p className="text-xs text-gray-600 mb-2 line-clamp-2">
+                              <p className="text-xs text-gray-600 dark:text-gray-300 mb-2 line-clamp-2">
                                 {marker.deskripsi}
                               </p>
                             )}
                             
                             <div className="flex items-center justify-between">
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
                                 {parseFloat(marker.position_yaw).toFixed(1)}°, {parseFloat(marker.position_pitch).toFixed(1)}°
                               </span>
                               
@@ -1152,7 +1152,7 @@ export default function ManageMarkers() {
                                 <Button 
                                   variant="outline" 
                                   size="sm"
-                                  className="h-6 w-6 p-0 text-red-600 hover:text-red-700"
+                                  className="h-6 w-6 p-0 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     deleteMarker(marker.id);
@@ -1190,7 +1190,7 @@ export default function ManageMarkers() {
           }
         }}
       >
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto dark:border-gray-800">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <MapPin size={20} />
@@ -1214,8 +1214,8 @@ export default function ManageMarkers() {
                         onClick={() => setFormData(prev => ({ ...prev, type: type.value as 'info' | 'navigation' }))}
                         className={`p-4 rounded-lg border-2 transition-all text-left ${
                           isSelected 
-                            ? 'border-blue-500 bg-blue-50' 
-                            : 'border-gray-200 hover:border-gray-300'
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-500' 
+                            : 'border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600'
                         }`}
                       >
                         <div className="flex items-center gap-3 mb-2">
@@ -1227,7 +1227,7 @@ export default function ManageMarkers() {
                           </div>
                           <span className="font-medium">{type.label}</span>
                         </div>
-                        <p className="text-sm text-gray-600">{type.description}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-200">{type.description}</p>
                       </button>
                     );
                   })}
@@ -1239,13 +1239,13 @@ export default function ManageMarkers() {
               <Label className="text-base font-semibold">Posisi Marker</Label>
               
               {pendingPosition ? (
-                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg dark:bg-blue-950/30 dark:border-blue-900/50">
                   <div className="flex items-center justify-between mb-3">
                     <div>
-                      <p className="text-sm text-blue-800 font-medium">
+                      <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">
                         Koordinat: {pendingPosition.yaw.toFixed(2)}°, {pendingPosition.pitch.toFixed(2)}°
                       </p>
-                      <p className="text-xs text-blue-600 mt-1">
+                      <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
                         Yaw (horizontal) • Pitch (vertical)
                       </p>
                     </div>
@@ -1280,20 +1280,20 @@ export default function ManageMarkers() {
                         }
                         setTempMarker(null);
                       }}
-                      className="text-red-600 hover:text-red-700"
+                      className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                     >
                       Reset
                     </Button>
                   </div>
                 </div>
               ) : (
-                <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg dark:bg-amber-950/30 dark:border-amber-900/50">
                   <div className="flex items-center justify-between mb-3">
                     <div>
-                      <p className="text-sm text-amber-800 font-medium">
+                      <p className="text-sm text-amber-800 dark:text-amber-200 font-medium">
                         Belum ada posisi marker
                       </p>
-                      <p className="text-xs text-amber-600 mt-1">
+                      <p className="text-xs text-amber-600 dark:text-amber-300 mt-1">
                         Klik tombol atau klik langsung di panorama
                       </p>
                     </div>
@@ -1398,20 +1398,20 @@ export default function ManageMarkers() {
                       const file = e.target.files?.[0] || null;
                       setFormData(prev => ({ ...prev, media_file: file }));
                     }}
-                    className="w-full p-2 border border-gray-300 rounded-lg"
+                    className="w-full p-2 border border-gray-300 rounded-lg dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
                   />
                     
                   {formData.media_type === 'video' ? (
                     <div className="space-y-2">
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
                         Format: MP4, WebM, AVI (Max: 10MB)
                       </p>
-                      <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="p-3 bg-green-50 border border-green-200 rounded-lg dark:bg-green-950/30 dark:border-green-900/50">
                         <div className="flex items-start gap-2">
                           <div className="w-4 h-4 bg-green-500 rounded-full flex-shrink-0 mt-0.5"></div>
                           <div>
-                            <p className="text-sm font-medium text-green-800">Video Greenscreen Seamless:</p>
-                            <ul className="text-xs text-green-700 mt-1 space-y-1">
+                            <p className="text-sm font-medium text-green-800 dark:text-green-200">Video Greenscreen Seamless:</p>
+                            <ul className="text-xs text-green-700 dark:text-green-300 mt-1 space-y-1">
                               <li>• Video akan ter-blend langsung dengan panorama (tanpa kotak)</li>
                               <li>• Gunakan background hijau solid (#00FF00) untuk hasil optimal</li>
                               <li>• Pencahayaan merata pada background hijau</li>
@@ -1423,7 +1423,7 @@ export default function ManageMarkers() {
                       </div>
                     </div>
                   ) : (
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       Format: JPG, PNG, GIF, WebP (Max: 4MB)
                     </p>
                   )}
@@ -1431,7 +1431,7 @@ export default function ManageMarkers() {
 
                 {/* Media Size Controls */}
                 {(formData.media_file || editingMarker?.media_url) && (
-                  <div className="space-y-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="space-y-3 p-3 bg-blue-50 border border-blue-200 rounded-lg dark:bg-blue-950/30 dark:border-blue-900/50">
                     <Label className="text-sm font-medium text-blue-800">Ukuran Media (pixels)</Label>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
@@ -1442,7 +1442,7 @@ export default function ManageMarkers() {
                           max="500"
                           value={formData.media_width}
                           onChange={(e) => setFormData(prev => ({ ...prev, media_width: parseInt(e.target.value) || 100 }))}
-                          className="text-sm"
+                          className="text-sm dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100"
                         />
                       </div>
                       <div>
@@ -1453,7 +1453,7 @@ export default function ManageMarkers() {
                           max="500"
                           value={formData.media_height}
                           onChange={(e) => setFormData(prev => ({ ...prev, media_height: parseInt(e.target.value) || 100 }))}
-                          className="text-sm"
+                          className="text-sm dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100"
                         />
                       </div>
                     </div>
@@ -1486,14 +1486,14 @@ export default function ManageMarkers() {
                         Besar (150px)
                       </Button>
                     </div>
-                    <p className="text-xs text-blue-600">Preview ukuran akan terlihat setelah marker dibuat/diupdate</p>
+                    <p className="text-xs text-blue-600 dark:text-blue-300">Preview ukuran akan terlihat setelah marker dibuat/diupdate</p>
                   </div>
                 )}
 
                 {/* Audio Narration Section */}
-                <div className="space-y-3 border-t pt-4">
+                <div className="space-y-3 border-t pt-4 dark:border-gray-800">
                   <Label className="text-sm font-medium">Audio Narasi (Opsional)</Label>
-                  <p className="text-xs text-gray-600">Upload file audio untuk narasi penjelasan marker informasi</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">Upload file audio untuk narasi penjelasan marker informasi</p>
                   
                   <input
                     type="file"
@@ -1502,21 +1502,21 @@ export default function ManageMarkers() {
                       const file = e.target.files?.[0] || null;
                       setFormData(prev => ({ ...prev, audio_file: file }));
                     }}
-                    className="w-full p-2 border border-gray-300 rounded-lg"
+                    className="w-full p-2 border border-gray-300 rounded-lg dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
                   />
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     Format: MP3, WAV, OGG (Max: 5MB)
                   </p>
                   
                   {/* Audio preview */}
                   {formData.audio_file && (
-                    <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                    <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg dark:bg-purple-950/30 dark:border-purple-900/50">
                       <div className="flex items-center justify-between mb-2">
                         <p className="text-sm font-medium text-purple-800">Preview Audio Narasi:</p>
                         <button
                           type="button"
                           onClick={() => setFormData(prev => ({ ...prev, audio_file: null }))}
-                          className="text-red-600 hover:text-red-700 text-xs"
+                          className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-xs"
                         >
                           Hapus
                         </button>
@@ -1526,7 +1526,7 @@ export default function ManageMarkers() {
                         className="w-full"
                         controls
                       />
-                      <p className="text-xs text-purple-600 mt-1">
+                      <p className="text-xs text-purple-600 dark:text-purple-300 mt-1">
                         🎵 Audio narasi siap untuk marker informasi
                       </p>
                     </div>
@@ -1535,13 +1535,13 @@ export default function ManageMarkers() {
 
                   {/* New media preview */}
                   {formData.media_file && (
-                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg dark:bg-blue-950/30 dark:border-blue-900/50">
                       <div className="flex items-center justify-between mb-2">
                         <p className="text-sm font-medium text-blue-800">Preview Media Baru:</p>
                         <button
                           type="button"
                           onClick={() => setFormData(prev => ({ ...prev, media_file: null }))}
-                          className="text-red-600 hover:text-red-700 text-xs"
+                          className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-xs"
                         >
                           Hapus
                         </button>
@@ -1576,7 +1576,7 @@ export default function ManageMarkers() {
 
                 {/* Current media preview for editing */}
                 {editingMarker?.media_url && (
-                  <div className="p-3 bg-gray-50 border rounded-lg">
+                  <div className="p-3 bg-gray-50 dark:bg-gray-900 border rounded-lg dark:border-gray-700">
                     <p className="text-sm text-gray-700 mb-2">Media visual saat ini:</p>
                     {editingMarker.media_type === 'image' ? (
                       <img 
@@ -1603,7 +1603,7 @@ export default function ManageMarkers() {
 
                 {/* Current audio preview for editing */}
                 {editingMarker?.audio_url && (
-                  <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                  <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg dark:bg-purple-950/30 dark:border-purple-900/50">
                     <p className="text-sm text-purple-700 mb-2">Audio narasi saat ini:</p>
                     <audio 
                       src={editingMarker.audio_url} 

@@ -85,9 +85,22 @@ export default function MuseumFormBase({ item, mode, overlays = [] }: Props) {
         return () => window.removeEventListener('resize', check);
     }, []);
 
+    // Helper to coerce latitude/longitude to numbers safely
+    const toNum = (v: any): number | null => {
+        if (v === null || v === undefined || v === '') return null;
+        const n = typeof v === 'number' ? v : parseFloat(String(v));
+        return Number.isFinite(n) ? n : null;
+    };
+
     useEffect(() => {
         if (editing) {
-            setData({ ...defaultValues, ...item });
+            setData({
+                ...defaultValues,
+                ...item,
+                // Ensure numeric for map and formatting
+                latitude: toNum((item as any)?.latitude),
+                longitude: toNum((item as any)?.longitude),
+            });
         }
     }, [editing, item]);
 
@@ -313,6 +326,10 @@ export default function MuseumFormBase({ item, mode, overlays = [] }: Props) {
         )
     }, [data, bgPreview]);
 
+    // Precompute numeric coordinates for rendering and passing to map
+    const latNum = toNum((data as any).latitude);
+    const lngNum = toNum((data as any).longitude);
+
     return (
         <div className='flex h-full w-full flex-col'>
             <div className='border-b px-4 lg:px-6 py-4 flex flex-wrap gap-3 items-center justify-between bg-background/60 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
@@ -393,17 +410,17 @@ export default function MuseumFormBase({ item, mode, overlays = [] }: Props) {
                             Klik pada peta untuk menentukan lokasi museum. Koordinat akan tersimpan otomatis.
                         </p>
                         <LocationPicker
-                            latitude={data.latitude}
-                            longitude={data.longitude}
+                            latitude={latNum}
+                            longitude={lngNum}
                             onLocationChange={(lat, lng) => {
                                 setData('latitude', lat);
                                 setData('longitude', lng);
                             }}
                             className="h-48 w-full"
                         />
-                        {(data.latitude && data.longitude) && (
+                        {(latNum !== null && lngNum !== null) && (
                             <div className='text-xs text-muted-foreground mt-2'>
-                                Koordinat: {data.latitude.toFixed(6)}, {data.longitude.toFixed(6)}
+                                Koordinat: {latNum.toFixed(6)}, {lngNum.toFixed(6)}
                             </div>
                         )}
                         {errors.latitude && <p className='text-xs text-red-500'>{errors.latitude}</p>}

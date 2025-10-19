@@ -44,8 +44,8 @@ class RuanganController extends Controller
             'nama_ruangan' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:ruangan,slug',
             'is_main' => 'nullable|boolean',
-            'panorama_image' => 'nullable|image|max:4096',
-            'audio_guide_file' => 'nullable|file|mimes:mp3,wav,ogg|max:10240',
+            'panorama_image' => 'nullable',
+            'audio_guide_file' => 'nullable|file|mimes:mp3,wav,ogg',
         ]);
 
         // Convert is_main to boolean
@@ -100,8 +100,8 @@ class RuanganController extends Controller
             'nama_ruangan' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:ruangan,slug,'.$ruangan->id,
             'is_main' => 'nullable|boolean',
-            'panorama_image' => 'nullable|image|max:4096',
-            'audio_guide_file' => 'nullable|file|mimes:mp3,wav,ogg|max:10240',
+            'panorama_image' => 'nullable',
+            'audio_guide_file' => 'nullable|file|mimes:mp3,wav,ogg',
         ]);
 
         // Convert is_main to boolean
@@ -173,7 +173,7 @@ class RuanganController extends Controller
     public function uploadAudioGuide(Request $request)
     {
         $request->validate([
-            'audio' => 'required|file|mimes:mp3,wav,ogg|max:10240'
+            'audio' => 'required|file|mimes:mp3,wav,ogg'
         ]);
 
         $file = $request->file('audio');
@@ -215,11 +215,11 @@ class RuanganController extends Controller
             'position_yaw' => 'nullable|numeric',
             'position_pitch' => 'nullable|numeric',
             'navigation_target' => 'nullable|exists:ruangan,id',
-            'media_file' => 'nullable|file|max:10240',
+            'media_file' => 'nullable|file',
             'media_type' => 'nullable|in:image,video',
-            'media_width' => 'nullable|integer|min:20|max:500',
-            'media_height' => 'nullable|integer|min:20|max:500',
-            'audio_file' => 'nullable|file|mimes:mp3,wav,ogg|max:5120',
+            'media_width' => 'nullable|integer|min:20',
+            'media_height' => 'nullable|integer|min:20',
+            'audio_file' => 'nullable|file|mimes:mp3,wav,ogg',
         ]);
 
         // Handle media file upload if provided
@@ -267,11 +267,11 @@ class RuanganController extends Controller
             'position_yaw' => 'nullable|numeric',
             'position_pitch' => 'nullable|numeric',
             'navigation_target' => 'nullable|exists:ruangan,id',
-            'media_file' => 'nullable|file|max:10240',
+            'media_file' => 'nullable|file',
             'media_type' => 'nullable|in:image,video',
-            'media_width' => 'nullable|integer|min:20|max:500',
-            'media_height' => 'nullable|integer|min:20|max:500',
-            'audio_file' => 'nullable|file|mimes:mp3,wav,ogg|max:5120',
+            'media_width' => 'nullable|integer|min:20',
+            'media_height' => 'nullable|integer|min:20',
+            'audio_file' => 'nullable|file|mimes:mp3,wav,ogg',
         ]);
 
         // Handle media file upload if provided

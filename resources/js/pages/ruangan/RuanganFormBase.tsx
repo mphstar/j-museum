@@ -26,7 +26,7 @@ export default function RuanganFormBase({ item, mode, museum }: Props) {
     const editing = mode === 'edit' && !!item;
     const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
 
-    const { data, setData, processing, errors, clearErrors } = useForm<{ 
+    const { data, setData, processing, errors, clearErrors, post, transform } = useForm<{ 
         [K in keyof typeof defaultValues]: (typeof defaultValues)[K] 
     } & { 
         panorama_image?: File | null;
@@ -97,31 +97,24 @@ export default function RuanganFormBase({ item, mode, museum }: Props) {
         e.preventDefault();
         clearErrors();
 
-        const submitData = new FormData();
-        
-        // Basic fields sesuai database schema
-        submitData.append('nama_ruangan', data.nama_ruangan);
-        submitData.append('slug', data.slug);
-        submitData.append('is_main', data.is_main ? '1' : '0');
-        
-        // File fields - akan diproses menjadi URL di backend
-        if (data.panorama_image) {
-            submitData.append('panorama_image', data.panorama_image);
-        }
-        if (data.audio_guide_file) {
-            submitData.append('audio_guide_file', data.audio_guide_file);
-        }
-
         const url = editing ? route('museum.ruangan.update', [museum.id, item.id]) : route('museum.ruangan.store', museum.id);
-        
-        router.post(url, submitData, {
+
+        // Transform data for submission (serialize boolean as 1/0)
+        transform((form) => ({
+            ...form,
+            is_main: form.is_main ? '1' : '0',
+        }));
+
+        // Use useForm.post to enable `processing` state and auto-handle files
+        post(url, {
+            forceFormData: true,
             onSuccess: () => {
                 toast.success('Success!', {
                     description: editing ? 'Ruangan berhasil diupdate' : 'Ruangan berhasil dibuat'
                 });
                 
             },
-            onError: (errors) => {
+            onError: () => {
                 toast.error('Error!', {
                     description: 'Terjadi kesalahan saat menyimpan data'
                 });
@@ -132,7 +125,7 @@ export default function RuanganFormBase({ item, mode, museum }: Props) {
     return (
         <div className="flex h-full w-full flex-col">
             {/* Header Section */}
-            <div className="bg-white border-b px-6 py-4">
+            <div className="border-b px-6 py-4">
                 <div className="flex flex-col gap-4">
                     <Button 
                         variant="outline" 
