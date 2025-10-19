@@ -401,7 +401,7 @@ export default function MuseumView({ museum, setting }: Props) {
         <div className="relative z-10 flex flex-col items-center gap-8 px-6">
           <div className="flex items-center gap-4">
             <Logo />
-            <span className="font-semibold tracking-wide text-lg">Education</span>
+            <span className="font-semibold tracking-wide text-lg">J-DiMS</span>
           </div>
           <div className="w-64 h-2 bg-white/10 rounded-full overflow-hidden">
             <div className="h-full bg-white transition-[width] duration-300 ease-out" style={{ width: `${Math.round(progress * 100)}%` }} />
@@ -422,7 +422,7 @@ export default function MuseumView({ museum, setting }: Props) {
             active={currentSlide} 
             onJump={scrollToIndex} 
             sections={SECTIONS} 
-            brand="J-ViMs" 
+            brand="J-DiMS" 
           />
           <NavDots 
             count={SECTIONS.length} 
@@ -462,7 +462,7 @@ export default function MuseumView({ museum, setting }: Props) {
           data-scroll-root="true"
           className="h-screen w-screen overflow-y-scroll snap-y snap-mandatory scrollbar-none relative bg-black"
         >
-          <Header active={active} onJump={scrollToIndex} sections={SECTIONS} brand="J-ViMs" />
+          <Header active={active} onJump={scrollToIndex} sections={SECTIONS} brand="J-DiMS" />
           <NavDots count={SECTIONS.length} active={active} onJump={scrollToIndex} />
           {SECTIONS.map((s, i) => (
             <Section

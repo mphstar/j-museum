@@ -13,6 +13,8 @@ class MarkerRuangan extends Model
     protected $casts = [
         'position_yaw' => 'float',
         'position_pitch' => 'float',
+        'media_width' => 'integer',
+        'media_height' => 'integer',
     ];
 
     public function ruangan()

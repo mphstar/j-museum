@@ -71,54 +71,7 @@ export default function PanoramaViewer() {
     setShowVisitorGuide(false);
   };
 
-  // Advanced greenscreen removal using Canvas API
-  const createGreenscreenCanvas = (videoElement: HTMLVideoElement, width: number = 60, height: number = 60) => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    
-    canvas.width = width;
-    canvas.height = height;
-    canvas.style.cssText = `
-      width: ${width}px;
-      height: ${height}px;
-      cursor: pointer;
-      background: transparent;
-    `;
-    
-    const processFrame = () => {
-      if (videoElement.readyState >= 2) {
-        ctx!.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-        
-        const imageData = ctx!.getImageData(0, 0, canvas.width, canvas.height);
-        const data = imageData.data;
-        
-        // Chroma key greenscreen removal
-        for (let i = 0; i < data.length; i += 4) {
-          const r = data[i];
-          const g = data[i + 1];
-          const b = data[i + 2];
-          
-          // Check if pixel is green (chroma key)
-          const isGreen = g > 100 && g > r * 1.4 && g > b * 1.4;
-          
-          if (isGreen) {
-            // Make pixel transparent
-            data[i + 3] = 0;
-          }
-        }
-        
-        ctx!.putImageData(imageData, 0, 0);
-      }
-      
-      requestAnimationFrame(processFrame);
-    };
-    
-    videoElement.addEventListener('loadeddata', () => {
-      processFrame();
-    });
-    
-    return canvas;
-  };
+  // Using MarkersPlugin chroma key for video markers (no canvas processing)
 
   // Room switching function
   const switchToRoom = useCallback((targetRuanganId: number) => {
@@ -161,103 +114,7 @@ export default function PanoramaViewer() {
     }, 100);
   }, [allRuangan, museum.id, activeRuangan]);
 
-  // Create video marker element with greenscreen removal
-  const createVideoMarkerElement = useCallback((marker: any, type: 'info' | 'navigation') => {
-    console.log('Creating video marker element for:', marker.judul, 'Type:', type);
-    console.log('Video URL:', marker.media_url);
-    console.log('Video dimensions:', marker.media_width, 'x', marker.media_height);
-    
-    const width = marker.media_width || 60;
-    const height = marker.media_height || 60;
-    const borderColor = type === 'info' ? '#3b82f6' : '#10b981';
-    
-    const container = document.createElement('div');
-    container.className = `${type}-video-marker`;
-    container.style.cssText = `
-      width: ${width}px;
-      height: ${height}px;
-      position: relative;
-      cursor: pointer;
-      transition: transform 0.3s ease;
-      overflow: hidden;
-    `;
-    
-    // Ensure video URL is valid
-    if (!marker.media_url) {
-      console.error('No video URL for marker:', marker.judul);
-      // Return fallback HTML marker
-      container.innerHTML = `
-        <div style="
-          width: 100%; 
-          height: 100%; 
-          background: ${borderColor};
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        ">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-            <circle cx="12" cy="12" r="2"/>
-            <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/>
-          </svg>
-        </div>
-      `;
-      return container;
-    }
-    
-    const video = document.createElement('video');
-    video.src = marker.media_url;
-    video.autoplay = true;
-    video.loop = true;
-    video.muted = true;
-    video.playsInline = true;
-    video.crossOrigin = 'anonymous';
-    video.style.display = 'none'; // Hide original video
-    
-    console.log('Video element created:', video);
-    
-    // Ensure video plays
-    video.addEventListener('canplay', () => {
-      console.log('Video can play, starting playback');
-      video.play().catch(e => {
-        console.error('Error playing video:', e);
-      });
-    });
-    
-    video.addEventListener('error', (e) => {
-      console.error('Video error:', e);
-    });
-    
-    // Create canvas with greenscreen removal and custom size
-    const canvas = createGreenscreenCanvas(video, width, height);
-    console.log('Canvas created:', canvas);
-    
-    // Add direct click handler as fallback
-    container.addEventListener('click', (e) => {
-      e.stopPropagation();
-      console.log('Direct container click for marker:', marker);
-      
-      if (type === 'info') {
-        console.log('Direct info click');
-        // Will be handled by Photo Sphere Viewer event
-      } else if (type === 'navigation') {
-        console.log('Direct navigation click, target:', marker.navigation_target);
-        // Fallback direct navigation
-        const targetRuangan = allRuangan.find((r: any) => r.id == marker.navigation_target);
-        if (targetRuangan) {
-          const targetUrl = `/museum/${museum.id}#ruangan-${targetRuangan.id}`;
-          console.log('Direct navigation to:', targetUrl);
-          toast.success(`Berpindah ke ${targetRuangan.nama_ruangan}`);
-          // Use state switching instead of router.visit
-          switchToRoom(targetRuangan.id);
-        }
-      }
-    });
-
-    container.appendChild(canvas);
-    container.appendChild(video); // Keep video in DOM for processing
-    
-    return container;
-  }, [allRuangan, museum.id, switchToRoom]);
+  // Removed custom video element path; we will use MarkersPlugin videoLayer in generateMarkers
 
   // Inject marker styles
   useEffect(() => {
@@ -300,13 +157,16 @@ export default function PanoramaViewer() {
 
       console.log('Base config for marker:', baseConfig);
 
-      // Simplified marker creation - just use HTML for now to test clicks
+      // Simplified marker creation
       if (marker.type === 'navigation') {
         console.log('Creating navigation marker for:', marker.judul, 'Target:', marker.navigation_target);
         
         // Create navigation marker element
         const navElement = document.createElement('div');
         navElement.className = 'w-12 h-12 mx-auto relative';
+        navElement.setAttribute('role', 'button');
+        navElement.setAttribute('tabindex', '0');
+        navElement.style.touchAction = 'manipulation';
         navElement.style.cssText = `
           cursor: pointer;
         `;
@@ -319,38 +179,77 @@ export default function PanoramaViewer() {
           </div>
         `;
         
-        // Add click event directly to element
-        navElement.addEventListener('click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          console.log('Navigation marker clicked directly!', marker.navigation_target);
-          const targetId = parseInt(marker.navigation_target);
-          if (targetId) {
-            switchToRoom(targetId);
-          }
-        });
-        
         return {
           ...baseConfig,
-          element: navElement
+          element: navElement,
+          anchor: 'center center'
         };
       } else {
         // For info markers with media
         if (marker.media_type === 'video' && marker.media_url) {
-          console.log('Processing video marker:', marker.judul, 'URL:', marker.media_url);
-          // Create video marker element
-          const videoElement = createVideoMarkerElement(marker, 'info');
-          console.log('Video element created for Photo Sphere:', videoElement);
+          // Validate and normalize media URL
+          const rawUrl = marker.media_url;
+          const isStringUrl = typeof rawUrl === 'string' && rawUrl.length > 0;
+          let mediaUrl: string | null = null;
+          if (isStringUrl) {
+            try {
+              // Support both absolute and relative URLs
+              mediaUrl = new URL(rawUrl, window.location.origin).href;
+            } catch (e) {
+              console.warn('Invalid media_url, cannot construct URL:', rawUrl);
+              mediaUrl = null;
+            }
+          }
+
+          if (!mediaUrl) {
+            console.warn('Skipping video layer, invalid media_url for marker:', marker.judul, rawUrl);
+            // Fallback to a simple info element so user still sees something clickable
+            const fallbackEl = document.createElement('div');
+            fallbackEl.className = 'w-12 h-12 mx-auto relative';
+            fallbackEl.setAttribute('role', 'button');
+            fallbackEl.setAttribute('tabindex', '0');
+            fallbackEl.style.touchAction = 'manipulation';
+            fallbackEl.style.cssText = `cursor: pointer;`;
+            fallbackEl.innerHTML = `
+              <div style="width: 100%; height: 100%; background: #ef4444; border-radius: 50%; border: 4px solid white; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4); display: flex; align-items: center; justify-content: center;">
+                <svg style="width: 16px; height: 16px; pointer-events: none;" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                  <path d="M12 9v4m0 4h.01"/>
+                  <circle cx="12" cy="12" r="10"/>
+                </svg>
+              </div>
+            `;
+            return {
+              ...baseConfig,
+              element: fallbackEl,
+              anchor: 'center center',
+              data: { ...baseConfig.data, clickAction: 'showInfo' },
+            } as any;
+          }
+
+          console.log('Processing video info marker with controllable HTMLVideoElement:', marker.judul, 'URL:', mediaUrl);
+          const width = Number(marker.media_width) || 240;
+          const height = Number(marker.media_height) || 240;
+          // Follow the Layers demo: provide the URL directly as videoLayer, let plugin manage the video element
+          // Enable chroma key as requested
           return {
             ...baseConfig,
-            element: videoElement
-          };
+            videoLayer: mediaUrl,
+            size: { width, height },
+            style: { cursor: 'pointer' },
+            anchor: 'center center',
+            tooltip: 'Play / Stop',
+            chromaKey: { enabled: true, color: '#009200', similarity: 0.12 },
+            data: { ...baseConfig.data, clickAction: 'toggleVideoInfoPlay' },
+          } as any;
         } else {
           console.log('Processing regular info marker:', marker.judul);
           
           // Create info marker element
           const infoElement = document.createElement('div');
           infoElement.className = 'w-12 h-12 mx-auto relative';
+          infoElement.setAttribute('role', 'button');
+          infoElement.setAttribute('tabindex', '0');
+          infoElement.style.touchAction = 'manipulation';
           infoElement.style.cssText = `
             cursor: pointer;
           `;
@@ -364,24 +263,16 @@ export default function PanoramaViewer() {
             </div>
           `;
           
-          // Add click event directly to element
-          infoElement.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('Info marker clicked directly!', marker.judul);
-            setSelectedMarker(marker);
-            setShowInfoDialog(true);
-          });
-          
           // Regular info marker
           return {
             ...baseConfig,
-            element: infoElement
+            element: infoElement,
+            anchor: 'center center'
           };
         }
       }
     }).filter((marker: any) => marker !== null);
-  }, [activeMarkers, createVideoMarkerElement, switchToRoom]);
+  }, [activeMarkers, switchToRoom]);
 
   // Handle browser back/forward navigation and initial hash
   useEffect(() => {
@@ -521,8 +412,8 @@ export default function PanoramaViewer() {
           return;
         }
 
-        const { Viewer } = await import('@photo-sphere-viewer/core');
-        const { MarkersPlugin } = await import('@photo-sphere-viewer/markers-plugin');
+  const { Viewer } = await import('@photo-sphere-viewer/core');
+  const { MarkersPlugin } = await import('@photo-sphere-viewer/markers-plugin');
 
         const generatedMarkers = generateMarkers();
         console.log('Generated markers for viewer:', generatedMarkers);
@@ -532,7 +423,8 @@ export default function PanoramaViewer() {
           panorama: activeRuangan.panorama_url,
           plugins: [
             [MarkersPlugin, {
-              markers: generatedMarkers
+              markers: generatedMarkers,
+              clickEventOnMarker: true,
             }]
           ],
           navbar: [
@@ -557,8 +449,26 @@ export default function PanoramaViewer() {
           console.log('Panorama ready for:', activeRuangan.nama_ruangan);
           
           // Setup marker click handler
-          const markersPlugin = newViewer.getPlugin('MarkersPlugin');
+          const markersPlugin = newViewer.getPlugin(MarkersPlugin);
           if (markersPlugin) {
+            // Ensure all video markers are paused by default (start from beginning)
+            setTimeout(() => {
+              try {
+                const allMarkers = (markersPlugin as any).getMarkers ? (markersPlugin as any).getMarkers() : [];
+                if (Array.isArray(allMarkers)) {
+                  allMarkers.forEach((m: any) => {
+                    const v: HTMLVideoElement | undefined = (m as any).video as any;
+                    if (v) {
+                      try { v.pause(); } catch {}
+                      try { v.currentTime = 0; } catch {}
+                    }
+                  });
+                }
+              } catch (e) {
+                console.warn('Unable to pause video markers by default:', e);
+              }
+            }, 0);
+
             markersPlugin.addEventListener('select-marker', (e: any) => {
               const marker = e.marker;
               const markerData = marker.data || marker.config?.data;
@@ -571,6 +481,38 @@ export default function PanoramaViewer() {
               } else if (markerData?.clickAction === 'showInfo') {
                 setSelectedMarker(markerData);
                 setShowInfoDialog(true);
+              } else if (markerData?.clickAction === 'toggleVideoInfoPlay') {
+                // Play/Stop behavior: when starting, always from the beginning (video & audio)
+                try {
+                  const videoEl: HTMLVideoElement | undefined = (marker as any).video as any;
+                  if (videoEl) {
+                    const isPaused = videoEl.paused;
+                    if (isPaused) {
+                      // start playback under user gesture (like demo), from the beginning
+                      try { videoEl.currentTime = 0; } catch {}
+                      (videoEl as any).playsInline = true;
+                      videoEl.setAttribute('playsinline', 'true');
+                      videoEl.muted = true; // keep video muted; separate narration below
+                      videoEl.play().catch(() => {});
+                      // start audio narration (external for now)
+                      const AUDIO_FALLBACK_URL = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
+                      const audioUrl = markerData?.audio_url || AUDIO_FALLBACK_URL;
+                      if (audioUrl) {
+                        // restart audio from beginning by recreating it
+                        playAudioNarration(audioUrl);
+                      }
+                    } else {
+                      // stop playback and reset to beginning
+                      videoEl.pause();
+                      try { videoEl.currentTime = 0; } catch {}
+                      stopAudioNarration();
+                    }
+                  } else {
+                    console.warn('No video element attached to marker for toggle.');
+                  }
+                } catch (err) {
+                  console.error('Error toggling video play/pause:', err);
+                }
               }
             });
           }
@@ -778,116 +720,105 @@ export default function PanoramaViewer() {
 
         {/* Visitor Guide Dialog */}
         <Dialog open={showVisitorGuide} onOpenChange={setShowVisitorGuide}>
-          <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto  bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200">
-            <DialogHeader className="text-center">
-              <DialogTitle className="text-xl md:text-2xl font-bold text-amber-800 bg-amber-200 px-4 py-2 rounded-lg inline-block mx-auto">
-                PANDUAN PENGUNJUNG
-              </DialogTitle>
-            </DialogHeader>
-            
-            <div className="space-y-6 px-2">
-              {/* Navigation Instructions */}
-              <div className="bg-white/80 rounded-xl p-4 md:p-6 border border-amber-200">
-                <h3 className="text-base md:text-lg font-semibold text-gray-800 mb-4 text-center">
-                  Tekan dan Geser untuk melihat area sekitar
-                </h3>
-                <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-6 lg:gap-8">
-                  <div className="text-center flex-shrink-0 max-w-[120px]">
-                    <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-300 rounded-full flex items-center justify-center mx-auto mb-3 relative">
-                      <div className="absolute inset-2 bg-amber-400 rounded-full flex items-center justify-center">
-                        <svg className="w-5 h-5 md:w-6 md:h-6" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
-                          <path d="M12 2v20M2 12h20"/>
-                          <path d="M7 7l10 10M17 7L7 17"/>
-                        </svg>
-                      </div>
+          <DialogContent className="w-[100vw] sm:w-[90vw] sm:max-w-2xl h-auto max-h-[80dvh] p-0 overflow-hidden rounded-none sm:rounded-2xl border-0 sm:border bg-white dark:bg-neutral-900 z-[9999]">
+            <div className="flex flex-col h-full">
+              {/* Header */}
+              <div className="px-5 py-4 bg-amber-100/80 dark:bg-amber-900/20 border-b border-amber-200/60 dark:border-amber-800/50">
+                <DialogTitle className="text-lg sm:text-xl font-bold text-amber-900 dark:text-amber-200 text-center">
+                  Panduan Singkat
+                </DialogTitle>
+                <p className="text-xs sm:text-sm text-amber-800/80 dark:text-amber-200/80 text-center mt-1">
+                  Cara cepat menjelajahi panorama di HP
+                </p>
+              </div>
+
+              {/* Body */}
+              <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                  {/* 1. Gerak Kamera */}
+                  <div className="rounded-xl border border-amber-200/70 dark:border-amber-800/60 bg-white/90 dark:bg-neutral-800 p-4 flex items-center gap-3">
+                    <div className="shrink-0 w-12 h-12 rounded-full bg-amber-400/90 flex items-center justify-center">
+                      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
+                        <path d="M12 2v20M2 12h20"/>
+                        <path d="M7 7l10 10M17 7L7 17"/>
+                      </svg>
                     </div>
-                    <p className="text-xs md:text-sm text-gray-600">Tekan dan geser<br/>untuk melihat sekitar</p>
-                  </div>
-                  
-                  <div className="text-center flex-shrink-0 max-w-[120px]">
-                    <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-300 rounded-full flex items-center justify-center mx-auto mb-3 relative">
-                      <div className="absolute inset-2 bg-amber-400 rounded-full flex items-center justify-center">
-                        <svg className="w-5 h-5 md:w-6 md:h-6" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                          <circle cx="12" cy="12" r="4"/>
-                          <path d="M16 8v5a3 3 0 0 0 6 0v-5a4 4 0 1 0-8 0Z"/>
-                        </svg>
-                      </div>
+                    <div>
+                      <p className="text-sm sm:text-base font-semibold text-gray-800 dark:text-gray-100">Gerakkan Kamera</p>
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">Sentuh & geser untuk melihat sekitar</p>
                     </div>
-                    <p className="text-xs md:text-sm text-gray-600">Tekan ikon lingkaran berpedah<br/>untuk berpindah/menjelajahi area sekitar</p>
                   </div>
-                  
-                  <div className="text-center flex-shrink-0 max-w-[120px]">
-                    <div className="w-16 h-16 md:w-20 md:h-20 bg-gray-300 rounded-full flex items-center justify-center mx-auto mb-3 relative">
-                      <div className="absolute inset-2 bg-amber-400 rounded-full flex items-center justify-center">
-                        <svg className="w-5 h-5 md:w-6 md:h-6" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                          <circle cx="12" cy="12" r="3"/>
-                          <path d="M12 1v6m0 6v6"/>
-                          <circle cx="12" cy="12" r="10"/>
-                        </svg>
-                      </div>
+
+                  {/* 2. Pindah Ruangan */}
+                  <div className="rounded-xl border border-emerald-200/70 dark:border-emerald-800/60 bg-white/90 dark:bg-neutral-800 p-4 flex items-center gap-3">
+                    <div className="shrink-0 w-12 h-12 rounded-full bg-emerald-500 flex items-center justify-center">
+                      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
+                        <path d="M9 6l6 6-6 6"/>
+                      </svg>
                     </div>
-                    <p className="text-xs md:text-sm text-gray-600">Gunakan roda gulir untuk<br/>memperbesar dan memperkecil</p>
+                    <div>
+                      <p className="text-sm sm:text-base font-semibold text-gray-800 dark:text-gray-100">Pindah Ruangan</p>
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">Ketuk penanda hijau untuk berpindah</p>
+                    </div>
                   </div>
+
+                  {/* 3. Info & Video */}
+                  <div className="rounded-xl border border-blue-200/70 dark:border-blue-800/60 bg-white/90 dark:bg-neutral-800 p-4 flex items-center gap-3">
+                    <div className="shrink-0 w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center">
+                      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 16v-4m0-4h.01"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-sm sm:text-base font-semibold text-gray-800 dark:text-gray-100">Lihat Informasi</p>
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">Ketuk penanda biru untuk detail</p>
+                    </div>
+                  </div>
+
+                  {/* 4. Video Play/Stop */}
+                  <div className="rounded-xl border border-purple-200/70 dark:border-purple-800/60 bg-white/90 dark:bg-neutral-800 p-4 flex items-center gap-3">
+                    <div className="shrink-0 w-12 h-12 rounded-full bg-purple-500 flex items-center justify-center">
+                      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="white">
+                        <path d="M8 5v14l11-7z"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-sm sm:text-base font-semibold text-gray-800 dark:text-gray-100">Video Play / Stop</p>
+                      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">Ketuk video untuk mulai/berhenti, narasi audio ikut</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Zoom & Tips */}
+                <div className="rounded-xl border border-amber-200/70 dark:border-amber-800/60 bg-amber-50/70 dark:bg-amber-900/10 p-4">
+                  <p className="text-sm sm:text-base font-semibold text-amber-900 dark:text-amber-200 mb-2">Zoom & Tips</p>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li className="text-xs sm:text-sm text-amber-800 dark:text-amber-100/90">Cubitan (pinch) untuk zoom in/out</li>
+                    <li className="text-xs sm:text-sm text-amber-800 dark:text-amber-100/90">Gunakan tombol zoom di toolbar jika perlu</li>
+                    <li className="text-xs sm:text-sm text-amber-800 dark:text-amber-100/90">Ketuk sekali pada marker—tidak perlu menahan</li>
+                  </ul>
                 </div>
               </div>
 
-              {/* Interactive Elements */}
-              <div className="bg-white/80 rounded-xl p-4 md:p-6 border border-amber-200">
-                <h3 className="text-base md:text-lg font-semibold text-amber-800 mb-4 text-center bg-amber-100 py-2 px-4 rounded-lg">
-                  INTERAKTIF HOTSPOT
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
-                  <div className="text-center">
-                    <div className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-3 relative">
-                      <div className="w-full h-full bg-blue-500 rounded-full border-4 border-white shadow-lg flex items-center justify-center">
-                        <svg className="w-4 h-4 md:w-6 md:h-6" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                          <circle cx="12" cy="12" r="10"/>
-                          <path d="M12 16v-4m0-4h.01"/>
-                        </svg>
-                      </div>
-                    </div>
-                    <p className="text-xs md:text-sm font-medium text-gray-800 px-1">Klik ikon untuk Melihat<br/>Detail Informasi</p>
-                  </div>
-                  
-                  <div className="text-center">
-                    <div className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-3 relative">
-                      <div className="w-full h-full bg-red-500 rounded-lg border-4 border-white shadow-lg flex items-center justify-center">
-                        <svg className="w-4 h-4 md:w-5 md:h-5" viewBox="0 0 24 24" fill="white">
-                          <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                        </svg>
-                      </div>
-                    </div>
-                    <p className="text-xs md:text-sm font-medium text-gray-800 px-1">Klik ikon untuk Membaca<br/>Buku Museum Kepresidenan</p>
-                  </div>
-                  
-                  <div className="text-center">
-                    <div className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-3 relative">
-                      <div className="w-full h-full bg-green-500 rounded-full border-4 border-white shadow-lg flex items-center justify-center">
-                        <svg className="w-4 h-4 md:w-6 md:h-6" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                          <path d="M9 6l6 6-6 6"/>
-                        </svg>
-                      </div>
-                    </div>
-                    <p className="text-xs md:text-sm font-medium text-gray-800 px-1">Klik Pananda untuk<br/>Menjelajahi Ulang Informasi</p>
-                  </div>
+              {/* Footer */}
+              <div className="p-4 border-t border-amber-200/60 dark:border-amber-800/50 bg-white/90 dark:bg-neutral-900">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button 
+                    onClick={() => setShowVisitorGuide(false)}
+                    className="bg-amber-600 hover:bg-amber-700 text-white font-semibold px-6 py-5 sm:py-2 rounded-lg flex-1"
+                  >
+                    Mengerti, Mulai Jelajah
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={handleCloseVisitorGuide}
+                    className="border-amber-500 text-amber-700 hover:bg-amber-50 dark:text-amber-200 dark:border-amber-700 dark:hover:bg-amber-900/20 font-medium px-6 py-5 sm:py-2 rounded-lg flex-1"
+                  >
+                    Jangan tampilkan lagi
+                  </Button>
                 </div>
               </div>
-            </div>
-
-            <div className="flex justify-center gap-4 pt-4 w-full flex-col">
-              <Button 
-                variant="outline"
-                onClick={() => setShowVisitorGuide(false)}
-                className="border-amber-600 text-amber-800 hover:bg-amber-50 font-medium px-6 py-2 flex-1"
-              >
-                Tutup Saja
-              </Button>
-              <Button 
-                onClick={handleCloseVisitorGuide}
-                className="bg-amber-600 hover:bg-amber-700 text-white font-semibold px-8 py-3 rounded-lg text-lg flex-1"
-              >
-                TUTUP & JANGAN TAMPILKAN LAGI
-              </Button>
             </div>
           </DialogContent>
         </Dialog>
@@ -900,6 +831,7 @@ export default function PanoramaViewer() {
           onRoomChange={switchToRoom}
           isOpen={showSidebar}
           onClose={() => setShowSidebar(false)}
+          onOpenGuide={() => setShowVisitorGuide(true)}
         />
       </div>
     </>

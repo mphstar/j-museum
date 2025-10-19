@@ -248,58 +248,7 @@ export default function ManageMarkers() {
     }
   }, [pendingPosition, viewer, showMarkerForm, formData.type, formData.media_file, panoramaLoaded]);
 
-  // Advanced greenscreen removal using Canvas API
-  const createGreenscreenCanvas = (videoElement: HTMLVideoElement, width: number = 60, height: number = 60) => {
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    
-    canvas.width = width;
-    canvas.height = height;
-    canvas.style.cssText = `
-      width: ${width}px;
-      height: ${height}px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      background: transparent;
-    `;
-    
-    const processFrame = () => {
-      if (videoElement.readyState >= 2) {
-        ctx!.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-        
-        const imageData = ctx!.getImageData(0, 0, canvas.width, canvas.height);
-        const data = imageData.data;
-        
-        // Chroma key greenscreen removal
-        for (let i = 0; i < data.length; i += 4) {
-          const r = data[i];
-          const g = data[i + 1];
-          const b = data[i + 2];
-          
-          // Check if pixel is green (chroma key)
-          const isGreen = g > 100 && g > r * 1.4 && g > b * 1.4;
-          
-          if (isGreen) {
-            // Make pixel transparent
-            data[i + 3] = 0;
-          } else {
-            // Keep non-green pixels as they are
-            // No brightness enhancement to keep original video quality
-          }
-        }
-        
-        ctx!.putImageData(imageData, 0, 0);
-      }
-      
-      requestAnimationFrame(processFrame);
-    };
-    
-    videoElement.addEventListener('loadeddata', () => {
-      processFrame();
-    });
-    
-    return canvas;
-  };
+  // Using MarkersPlugin videoLayer + chromaKey (see Chroma Key demo); removed custom Canvas approach
 
   // Generate marker configuration based on media and type
   const generateMarkerConfig = (marker: any) => {
@@ -321,41 +270,19 @@ export default function ManageMarkers() {
 
     if (hasMedia) {
       if (marker.media_type === 'video') {
-        // Video marker with true greenscreen removal using Canvas
+        const width = marker.media_width || 100;
+        const height = marker.media_height || 100;
         return {
           ...baseConfig,
-          element: (() => {
-            const container = document.createElement('div');
-            container.className = 'greenscreen-video-marker';
-            
-            // Apply custom size to container
-            const width = marker.media_width || 100;
-            const height = marker.media_height || 100;
-            container.style.width = `${width}px`;
-            container.style.height = `${height}px`;
-            
-            const video = document.createElement('video');
-            video.src = marker.media_url;
-            video.autoplay = true;
-            video.loop = true;
-            video.muted = true;
-            video.playsInline = true;
-            video.style.display = 'none'; // Hide original video
-            
-            // Ensure video plays
-            video.addEventListener('canplay', () => {
-              video.play().catch(console.error);
-            });
-            
-            // Create canvas with greenscreen removal and custom size
-            const canvas = createGreenscreenCanvas(video, width, height);
-            container.appendChild(canvas);
-            container.appendChild(video); // Keep video in DOM for processing
-            
-            return container;
-          })(),
-          anchor: 'center center'
-        };
+          videoLayer: marker.media_url,
+          size: { width, height },
+          chromaKey: {
+            enabled: true,
+            color: '#009200',
+            similarity: 0.1,
+          },
+          anchor: 'center center',
+        } as any;
       } else if (marker.media_type === 'image') {
         // Image marker with custom size
         const width = marker.media_width || 100;
@@ -414,110 +341,26 @@ export default function ManageMarkers() {
       const mediaUrl = URL.createObjectURL(mediaFile);
       
       if (mediaFile.type.startsWith('video/')) {
-        // Use current form data for size or default to 50px for preview
-        const previewWidth = Math.min(formData.media_width || 50, 50); // Cap preview size
+        const previewWidth = Math.min(formData.media_width || 50, 50);
         const previewHeight = Math.min(formData.media_height || 50, 50);
-        
+        const blobUrl = URL.createObjectURL(mediaFile);
+
         return {
           id: tempMarkerId,
-          position: position,
-          element: (() => {
-            const container = document.createElement('div');
-            container.style.cssText = 'position: relative; display: inline-block;';
-            
-            const mediaUrl = URL.createObjectURL(mediaFile);
-            const video = document.createElement('video');
-            video.src = mediaUrl;
-            video.autoplay = true;
-            video.loop = true;
-            video.muted = true;
-            video.playsInline = true;
-            video.style.display = 'none';
-            
-            // Ensure video plays
-            video.addEventListener('canplay', () => {
-              video.play().catch(console.error);
-            });
-            
-            // Create smaller canvas for temp preview with proportional size
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = previewWidth;
-            canvas.height = previewHeight;
-            canvas.style.cssText = `
-              width: ${previewWidth}px;
-              height: ${previewHeight}px;
-              cursor: move;
-              animation: markerPulse 1.5s infinite;
-              background: transparent;
-              border: 2px solid #ff6b35;
-            `;
-            
-            const processFrame = () => {
-              if (video.readyState >= 2) {
-                ctx!.drawImage(video, 0, 0, canvas.width, canvas.height);
-                
-                const imageData = ctx!.getImageData(0, 0, canvas.width, canvas.height);
-                const data = imageData.data;
-                
-                // Greenscreen removal for temp preview
-                for (let i = 0; i < data.length; i += 4) {
-                  const r = data[i];
-                  const g = data[i + 1];
-                  const b = data[i + 2];
-                  
-                  // Detect green pixels
-                  const isGreen = g > 80 && g > r * 1.3 && g > b * 1.3;
-                  
-                  if (isGreen) {
-                    data[i + 3] = 0; // Make transparent
-                  }
-                  // Keep other pixels as original - no enhancement
-                }
-                
-                ctx!.putImageData(imageData, 0, 0);
-              }
-              
-              requestAnimationFrame(processFrame);
-            };
-            
-            video.addEventListener('loadeddata', () => {
-              processFrame();
-            });
-            
-            container.appendChild(canvas);
-            container.appendChild(video); // Keep video in DOM for processing
-            
-            // Add play indicator
-            const indicator = document.createElement('div');
-            indicator.style.cssText = `
-              position: absolute;
-              top: -5px;
-              right: -5px;
-              width: 20px;
-              height: 20px;
-              background: #ff6b35;
-              border-radius: 50%;
-              border: 2px solid white;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              animation: markerPulse 1s infinite;
-            `;
-            indicator.innerHTML = `
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="white">
-                <polygon points="5 3 19 12 5 21 5 3"/>
-              </svg>
-            `;
-            container.appendChild(indicator);
-            
-            return container;
-          })(),
+          position,
+          videoLayer: blobUrl,
+          size: { width: previewWidth, height: previewHeight },
+          chromaKey: {
+            enabled: true,
+            color: '#009200',
+            similarity: 0.1,
+          },
+          anchor: 'center center',
           tooltip: {
             content: `Preview Video Greenscreen - Posisi: ${position.yaw.toFixed(1)}°, ${position.pitch.toFixed(1)}°`,
             position: 'top center'
           }
-        };
+        } as any;
       } else if (mediaFile.type.startsWith('image/')) {
         // Use current form data for size or default to 45px for preview
         const previewWidth = Math.min(formData.media_width || 45, 50); // Cap preview size
@@ -920,9 +763,10 @@ export default function ManageMarkers() {
     if (formData.media_file) {
       submitData.append('media_file', formData.media_file);
       submitData.append('media_type', formData.media_type);
-      submitData.append('media_width', formData.media_width.toString());
-      submitData.append('media_height', formData.media_height.toString());
     }
+    
+    submitData.append('media_width', formData.media_width.toString());
+    submitData.append('media_height', formData.media_height.toString());
     
     if (formData.audio_file) {
       submitData.append('audio_file', formData.audio_file);
@@ -1439,7 +1283,6 @@ export default function ManageMarkers() {
                         <Input
                           type="number"
                           min="20"
-                          max="500"
                           value={formData.media_width}
                           onChange={(e) => setFormData(prev => ({ ...prev, media_width: parseInt(e.target.value) || 100 }))}
                           className="text-sm dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100"
@@ -1450,7 +1293,6 @@ export default function ManageMarkers() {
                         <Input
                           type="number"
                           min="20"
-                          max="500"
                           value={formData.media_height}
                           onChange={(e) => setFormData(prev => ({ ...prev, media_height: parseInt(e.target.value) || 100 }))}
                           className="text-sm dark:bg-gray-900 dark:border-gray-700 dark:text-gray-100"
@@ -1560,8 +1402,8 @@ export default function ManageMarkers() {
                           controls
                           muted
                         />
-                        <p className="text-xs text-green-600 font-medium">
-                          ✓ Video siap dengan true chroma key greenscreen removal menggunakan Canvas API
+                        <p className="text-xs text-green-600 dark:text-green-400 font-medium">
+                          ✓ Video siap dengan chroma key (greenscreen) menggunakan MarkersPlugin
                         </p>
                       </div>
                     ) : formData.media_file.type.startsWith('audio/') ? (

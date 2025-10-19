@@ -269,8 +269,8 @@ class RuanganController extends Controller
             'navigation_target' => 'nullable|exists:ruangan,id',
             'media_file' => 'nullable|file',
             'media_type' => 'nullable|in:image,video',
-            'media_width' => 'nullable|integer|min:20',
-            'media_height' => 'nullable|integer|min:20',
+            'media_width' => 'nullable|integer',
+            'media_height' => 'nullable|integer',
             'audio_file' => 'nullable|file|mimes:mp3,wav,ogg',
         ]);
 

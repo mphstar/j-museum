@@ -105,36 +105,57 @@ export default function LocationMapDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl w-[95vw] h-[80vh] p-0 z-[80]">
+      <DialogContent className="max-w-4xl w-[95vw] h-[80vh] p-0 z-[80] dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700">
+        {/* Scoped dark styles for Leaflet controls/popups */}
+        <style>{`
+          .dark .leaflet-container .leaflet-control-attribution {
+            background-color: rgba(17, 24, 39, 0.7);
+            color: #e5e7eb;
+            border: 1px solid #374151;
+            border-radius: 0.375rem;
+            padding: 2px 6px;
+          }
+          .dark .leaflet-container .leaflet-control-zoom a {
+            background-color: #111827;
+            color: #e5e7eb;
+            border: 1px solid #374151;
+          }
+          .dark .leaflet-container .leaflet-popup-content-wrapper,
+          .dark .leaflet-container .leaflet-popup-tip {
+            background: #1f2937;
+            color: #e5e7eb;
+            border: 1px solid #374151;
+          }
+        `}</style>
         <DialogHeader className="p-6 pb-2">
-          <DialogTitle className="text-xl">
+          <DialogTitle className="text-xl dark:text-gray-100">
             Lokasi {museumName}
           </DialogTitle>
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-gray-600 dark:text-gray-300">
             Koordinat: {latitude.toFixed(6)}, {longitude.toFixed(6)}
           </div>
         </DialogHeader>
         
         <div className="flex-1 px-6 pb-6">
           {!mapLoaded && !mapError && (
-            <div className="h-full bg-gray-100 rounded-lg flex items-center justify-center">
+            <div className="h-full bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
               <div className="text-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p className="text-gray-600">Memuat peta...</p>
+                <p className="text-gray-600 dark:text-gray-300">Memuat peta...</p>
               </div>
             </div>
           )}
           
           {mapError && (
-            <div className="h-full bg-gray-100 rounded-lg flex items-center justify-center">
+            <div className="h-full bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
               <div className="text-center">
                 <div className="text-red-500 mb-4">
                   <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
-                <p className="text-gray-600 mb-4">Gagal memuat peta</p>
-                <p className="text-sm text-gray-500">
+                <p className="text-gray-600 dark:text-gray-300 mb-4">Gagal memuat peta</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   Koordinat: {latitude.toFixed(6)}, {longitude.toFixed(6)}
                 </p>
               </div>
