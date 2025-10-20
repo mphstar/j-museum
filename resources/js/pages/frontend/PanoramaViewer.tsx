@@ -56,6 +56,58 @@ export default function PanoramaViewer() {
   const [showVisitorGuide, setShowVisitorGuide] = useState(true); // Show guide on first load
   const [showSidebar, setShowSidebar] = useState(false); // Sidebar state
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  // Room background audio (guide)
+  const roomAudioRef = useRef<HTMLAudioElement | null>(null);
+  const [isPlayingRoomAudio, setIsPlayingRoomAudio] = useState(false);
+  // Ducking state: lower room audio volume while narration plays
+  const roomAudioDuckedByNarrationRef = useRef(false);
+  const roomAudioPrevVolumeRef = useRef<number>(1);
+  const roomAudioStartNeededRef = useRef(false);
+  const roomAudioStartUnsubsRef = useRef<Array<() => void> | null>(null);
+
+  const tryStartRoomAudioNow = useCallback(() => {
+    if (roomAudioRef.current) {
+      roomAudioRef.current.play().then(() => {
+        setIsPlayingRoomAudio(true);
+        roomAudioStartNeededRef.current = false;
+        // If narration is already playing, duck the room audio immediately
+        try {
+          if (audioRef.current && !audioRef.current.paused && roomAudioRef.current) {
+            roomAudioPrevVolumeRef.current = roomAudioRef.current.volume ?? 1;
+            roomAudioRef.current.volume = 0.2;
+            roomAudioDuckedByNarrationRef.current = true;
+          }
+        } catch {}
+        // remove any pending listeners
+        if (roomAudioStartUnsubsRef.current) {
+          roomAudioStartUnsubsRef.current.forEach((fn) => {
+            try { fn(); } catch {}
+          });
+          roomAudioStartUnsubsRef.current = null;
+        }
+      }).catch(() => {
+        // still blocked; keep waiting
+      });
+    }
+  }, []);
+
+  const scheduleRoomAudioStartOnGesture = useCallback(() => {
+    if (!roomAudioStartNeededRef.current) return;
+    const unsubs: Array<() => void> = [];
+    const handler = () => tryStartRoomAudioNow();
+    // document-level listeners
+    document.addEventListener('pointerdown', handler, { once: false });
+    unsubs.push(() => document.removeEventListener('pointerdown', handler));
+    document.addEventListener('click', handler, { once: false });
+    unsubs.push(() => document.removeEventListener('click', handler));
+    // container-level listener
+    if (viewerRef.current) {
+      const el = viewerRef.current;
+      el.addEventListener('pointerdown', handler, { once: false });
+      unsubs.push(() => el.removeEventListener('pointerdown', handler));
+    }
+    roomAudioStartUnsubsRef.current = unsubs;
+  }, [tryStartRoomAudioNow]);
 
   // Check localStorage for visitor guide preference
   useEffect(() => {
@@ -69,6 +121,9 @@ export default function PanoramaViewer() {
   const handleCloseVisitorGuide = () => {
     localStorage.setItem('museum-visitor-guide-seen', 'true');
     setShowVisitorGuide(false);
+    if (roomAudioStartNeededRef.current) {
+      tryStartRoomAudioNow();
+    }
   };
 
   // Using MarkersPlugin chroma key for video markers (no canvas processing)
@@ -76,6 +131,18 @@ export default function PanoramaViewer() {
   // Room switching function
   const switchToRoom = useCallback((targetRuanganId: number) => {
     console.log('=== SWITCHING TO ROOM ===', targetRuanganId);
+    // Stop any playing narration audio when switching rooms
+    if (audioRef.current) {
+      try { audioRef.current.pause(); } catch {}
+      audioRef.current = null;
+      setIsPlayingAudio(false);
+    }
+    // Stop room background audio when switching rooms
+    if (roomAudioRef.current) {
+      try { roomAudioRef.current.pause(); } catch {}
+      roomAudioRef.current = null;
+      setIsPlayingRoomAudio(false);
+    }
     
     const targetRuangan = allRuangan.find((r: any) => r.id === targetRuanganId);
     
@@ -283,6 +350,18 @@ export default function PanoramaViewer() {
       if (match) {
         const ruanganIdFromHash = parseInt(match[1]);
         if (ruanganIdFromHash && ruanganIdFromHash !== activeRuangan?.id) {
+          // Stop any playing narration audio when switching rooms via hash
+          if (audioRef.current) {
+            try { audioRef.current.pause(); } catch {}
+            audioRef.current = null;
+            setIsPlayingAudio(false);
+          }
+          // Stop room background audio when switching rooms via hash
+          if (roomAudioRef.current) {
+            try { roomAudioRef.current.pause(); } catch {}
+            roomAudioRef.current = null;
+            setIsPlayingRoomAudio(false);
+          }
           const targetRuangan = allRuangan.find((r: any) => r.id === ruanganIdFromHash);
           if (targetRuangan) {
             setActiveRuangan(targetRuangan);
@@ -299,6 +378,17 @@ export default function PanoramaViewer() {
     // Handle popstate (back/forward buttons)
     const handlePopState = (event: PopStateEvent) => {
       if (event.state?.ruanganId) {
+        // Stop any playing narration audio when switching rooms via history
+        if (audioRef.current) {
+          try { audioRef.current.pause(); } catch {}
+          audioRef.current = null;
+          setIsPlayingAudio(false);
+        }
+        if (roomAudioRef.current) {
+          try { roomAudioRef.current.pause(); } catch {}
+          roomAudioRef.current = null;
+          setIsPlayingRoomAudio(false);
+        }
         const targetRuangan = allRuangan.find((r: any) => r.id === event.state.ruanganId);
         if (targetRuangan) {
           setActiveRuangan(targetRuangan);
@@ -307,6 +397,16 @@ export default function PanoramaViewer() {
         }
       } else {
         // If no state, go back to main room
+        if (audioRef.current) {
+          try { audioRef.current.pause(); } catch {}
+          audioRef.current = null;
+          setIsPlayingAudio(false);
+        }
+        if (roomAudioRef.current) {
+          try { roomAudioRef.current.pause(); } catch {}
+          roomAudioRef.current = null;
+          setIsPlayingRoomAudio(false);
+        }
         const mainRuangan = allRuangan?.find((r: any) => r.is_main) || allRuangan?.[0];
         if (mainRuangan) {
           setActiveRuangan(mainRuangan);
@@ -358,6 +458,44 @@ export default function PanoramaViewer() {
 
   // Initialize Photo Sphere Viewer
   useEffect(() => {
+    // Start room-level audio guide if available for this room
+    try {
+      // stop previous room audio first (safety)
+      if (roomAudioRef.current) {
+        try { roomAudioRef.current.pause(); } catch {}
+        roomAudioRef.current = null;
+        setIsPlayingRoomAudio(false);
+      }
+      const guideUrl = (activeRuangan as any)?.audio_guide_url as string | undefined;
+      if (guideUrl) {
+        let resolvedUrl: string | null = null;
+        try {
+          resolvedUrl = new URL(guideUrl, window.location.origin).href;
+        } catch {
+          resolvedUrl = guideUrl; // fallback to raw
+        }
+        const audio = new Audio(resolvedUrl);
+        audio.loop = true; // loop background guide by default
+        roomAudioRef.current = audio;
+        audio.play().then(() => {
+          setIsPlayingRoomAudio(true);
+          // if narration already playing, duck immediately
+          try {
+            if (audioRef.current && !audioRef.current.paused) {
+              roomAudioPrevVolumeRef.current = audio.volume ?? 1;
+              audio.volume = 0.2;
+              roomAudioDuckedByNarrationRef.current = true;
+            }
+          } catch {}
+        }).catch(() => {
+          // autoplay blocked; arm gesture listeners
+          setIsPlayingRoomAudio(false);
+          roomAudioStartNeededRef.current = true;
+          scheduleRoomAudioStartOnGesture();
+        });
+      }
+    } catch {}
+
     if (!activeRuangan?.panorama_url) {
       console.log('No panorama URL for:', activeRuangan?.nama_ruangan);
       return;
@@ -447,6 +585,10 @@ export default function PanoramaViewer() {
 
         newViewer.addEventListener('ready', () => {
           console.log('Panorama ready for:', activeRuangan.nama_ruangan);
+          // try start room audio on first viewer interaction if was blocked
+          newViewer.addEventListener('click', () => {
+            if (roomAudioStartNeededRef.current) tryStartRoomAudioNow();
+          });
           
           // Setup marker click handler
           const markersPlugin = newViewer.getPlugin(MarkersPlugin);
@@ -494,10 +636,19 @@ export default function PanoramaViewer() {
                       videoEl.setAttribute('playsinline', 'true');
                       videoEl.muted = true; // keep video muted; separate narration below
                       videoEl.play().catch(() => {});
-                      // start audio narration (external for now)
-                      const AUDIO_FALLBACK_URL = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
-                      const audioUrl = markerData?.audio_url || AUDIO_FALLBACK_URL;
+                      // start audio narration only if provided by DB
+                      const audioUrl = markerData?.audio_url;
                       if (audioUrl) {
+                        // pause room audio while narration plays
+                        if (roomAudioRef.current) {
+                          try {
+                            roomAudioPrevVolumeRef.current = roomAudioRef.current.volume ?? 1;
+                            roomAudioRef.current.volume = 0.2;
+                            roomAudioDuckedByNarrationRef.current = true;
+                          } catch {}
+                        } else {
+                          roomAudioDuckedByNarrationRef.current = false;
+                        }
                         // restart audio from beginning by recreating it
                         playAudioNarration(audioUrl);
                       }
@@ -505,7 +656,15 @@ export default function PanoramaViewer() {
                       // stop playback and reset to beginning
                       videoEl.pause();
                       try { videoEl.currentTime = 0; } catch {}
+                      // stop narration audio
                       stopAudioNarration();
+                      // resume room audio if it was paused by narration
+                      if (roomAudioDuckedByNarrationRef.current && roomAudioRef.current) {
+                        try {
+                          roomAudioRef.current.volume = roomAudioPrevVolumeRef.current || 1;
+                        } catch {}
+                        roomAudioDuckedByNarrationRef.current = false;
+                      }
                     }
                   } else {
                     console.warn('No video element attached to marker for toggle.');
@@ -536,6 +695,23 @@ export default function PanoramaViewer() {
     // Cleanup function
     return () => {
       clearTimeout(timeoutId);
+      // Ensure audio stops on unmount / viewer re-init
+      if (audioRef.current) {
+        try { audioRef.current.pause(); } catch {}
+        audioRef.current = null;
+        setIsPlayingAudio(false);
+      }
+      if (roomAudioRef.current) {
+        try { roomAudioRef.current.pause(); } catch {}
+        roomAudioRef.current = null;
+        setIsPlayingRoomAudio(false);
+      }
+      if (roomAudioStartUnsubsRef.current) {
+        roomAudioStartUnsubsRef.current.forEach((fn) => {
+          try { fn(); } catch {}
+        });
+        roomAudioStartUnsubsRef.current = null;
+      }
       if (viewer) {
         console.log('Cleaning up viewer...');
         try {
@@ -554,9 +730,14 @@ export default function PanoramaViewer() {
     
     const audio = new Audio(audioUrl);
     audioRef.current = audio;
+    // Loop narration to match looping video markers
+    audio.loop = true;
     
     audio.addEventListener('loadstart', () => setIsPlayingAudio(true));
-    audio.addEventListener('ended', () => setIsPlayingAudio(false));
+    // If looping, don't mark as stopped on 'ended' between loops
+    audio.addEventListener('ended', () => {
+      if (!audio.loop) setIsPlayingAudio(false);
+    });
     audio.addEventListener('error', () => {
       setIsPlayingAudio(false);
       toast.error('Gagal memutar audio narasi');
@@ -580,7 +761,24 @@ export default function PanoramaViewer() {
     if (selectedMarker?.audio_url) {
       if (isPlayingAudio) {
         stopAudioNarration();
+        // restore room audio volume if it was ducked
+        if (roomAudioDuckedByNarrationRef.current && roomAudioRef.current) {
+          try {
+            roomAudioRef.current.volume = roomAudioPrevVolumeRef.current || 1;
+          } catch {}
+          roomAudioDuckedByNarrationRef.current = false;
+        }
       } else {
+        // duck room audio while narration plays
+        if (roomAudioRef.current) {
+          try {
+            roomAudioPrevVolumeRef.current = roomAudioRef.current.volume ?? 1;
+            roomAudioRef.current.volume = 0.2;
+            roomAudioDuckedByNarrationRef.current = true;
+          } catch {}
+        } else {
+          roomAudioDuckedByNarrationRef.current = false;
+        }
         playAudioNarration(selectedMarker.audio_url);
       }
     }
@@ -672,6 +870,13 @@ export default function PanoramaViewer() {
           setShowInfoDialog(open);
           if (!open) {
             stopAudioNarration();
+            // restore room audio volume if it was ducked by narration
+            if (roomAudioDuckedByNarrationRef.current && roomAudioRef.current) {
+              try {
+                roomAudioRef.current.volume = roomAudioPrevVolumeRef.current || 1;
+              } catch {}
+              roomAudioDuckedByNarrationRef.current = false;
+            }
           }
         }}>
           <DialogContent className="max-w-md">
