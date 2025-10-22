@@ -155,7 +155,7 @@ class RuanganController extends Controller
     public function uploadPanorama(Request $request)
     {
         $request->validate([
-            'image' => 'required|image|max:4096'
+            'image' => 'required|image'
         ]);
 
         $file = $request->file('image');
