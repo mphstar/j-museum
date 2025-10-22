@@ -237,7 +237,7 @@ export default function RuanganFormBase({ item, mode, museum }: Props) {
                                             Pilih Gambar Panorama
                                         </Button>
                                         <p className="text-xs text-gray-500 mt-2">
-                                            Format: JPG, PNG, max 4MB
+                                            Format: JPG, PNG, Rekomendasi 5-10MB
                                         </p>
                                         {panoramaPreview && (
                                             <div className="mt-4">
@@ -284,7 +284,7 @@ export default function RuanganFormBase({ item, mode, museum }: Props) {
                                             Pilih File Audio
                                         </Button>
                                         <p className="text-xs text-gray-500 mt-2">
-                                            Format: MP3, WAV, OGG, max 10MB
+                                            Format: MP3, WAV, OGG
                                         </p>
                                         {audioPreview && (
                                             <div className="mt-4">

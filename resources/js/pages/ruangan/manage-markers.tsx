@@ -1268,7 +1268,7 @@ export default function ManageMarkers() {
                     </div>
                   ) : (
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Format: JPG, PNG, GIF, WebP (Max: 4MB)
+                      Format: JPG, PNG, GIF, WebP
                     </p>
                   )}
                 </div>
