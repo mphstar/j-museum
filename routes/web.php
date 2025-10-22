@@ -8,15 +8,15 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FrontendController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return redirect()->route('login');
-})->name('home');
+// Route::get('/', function () {
+//     return redirect()->route('login');
+// })->name('home');
 
 Route::get('/glitchtip/error', function () {
     throw new Exception('My first GlitchTip error!');
 });
 
-Route::get('/view', [FrontendController::class, 'index'])->name('frontend.index');
+Route::get('/', [FrontendController::class, 'index'])->name('home');
 
 // Public panorama viewer routes
 Route::get('/museum/{museum}', [FrontendController::class, 'showPanorama'])
