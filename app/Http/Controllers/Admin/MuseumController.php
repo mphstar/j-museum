@@ -45,7 +45,7 @@ class MuseumController extends Controller
             'slug' => 'nullable|string|max:255|unique:museum,slug',
             'content' => 'nullable|string',
             'background_url' => 'nullable|string|max:255', // will be set after upload
-            'background_image' => 'nullable|image|max:4096',
+            'background_image' => 'nullable|image',
             'cta_href' => 'nullable|string|max:255',
             'cta_label' => 'nullable|string|max:255',
             'align' => 'required|in:left,right',
@@ -89,7 +89,7 @@ class MuseumController extends Controller
             'slug' => 'required|string|max:255|unique:museum,slug,'.$museum->id,
             'content' => 'nullable|string',
             'background_url' => 'nullable|string|max:255',
-            'background_image' => 'nullable|image|max:4096',
+            'background_image' => 'nullable|image',
             'cta_href' => 'nullable|string|max:255',
             'cta_label' => 'nullable|string|max:255',
             'align' => 'required|in:left,right',
@@ -150,7 +150,7 @@ class MuseumController extends Controller
     public function storeOverlay(Request $request, Museum $museum)
     {
         $data = $request->validate([
-            'overlay' => 'required|image|max:2048',
+            'overlay' => 'required|image',
             'position_horizontal' => 'nullable|in:left,center,right',
             'position_vertical' => 'nullable|in:top,center,bottom',
             'object_fit' => 'nullable|in:contain,cover,fill,none,scale-down,crop'

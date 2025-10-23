@@ -15,7 +15,7 @@ interface HeaderProps {
 export function Header({active,onJump,sections,brand,backHref,actions}:HeaderProps){
   const label = brand || 'Education';
   return (
-  <div className="sticky top-0 z-[60] px-3 md:px-8 py-3 backdrop-blur-md bg-black/35 supports-[backdrop-filter]:bg-black/20 border-b border-white/10">
+  <div className="fixed w-full top-0 z-[60] px-3 md:px-8 py-3 border-b border-white/10">
       {/* Mobile layout */}
       <div className="md:hidden relative flex items-center h-10">
         {/* Left: back button or logo when no back */}
@@ -58,7 +58,7 @@ export function Header({active,onJump,sections,brand,backHref,actions}:HeaderPro
           <Logo />
           <span className="text-white font-semibold tracking-wide text-base group-hover:opacity-90">{label}</span>
         </a>
-        <nav className="flex gap-5 text-sm">
+        {/* <nav className="flex gap-5 text-sm">
           {sections.map((s,i)=>{
             const lab = s.navLabel || s.title.split(' ')[0];
             return (
@@ -67,7 +67,7 @@ export function Header({active,onJump,sections,brand,backHref,actions}:HeaderPro
               </button>
             );
           })}
-        </nav>
+        </nav> */}
         <div className="ml-auto flex items-center gap-3">{actions}</div>
       </div>
     </div>

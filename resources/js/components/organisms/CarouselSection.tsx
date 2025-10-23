@@ -130,11 +130,11 @@ export const CarouselSection = forwardRef<HTMLDivElement, { data: SectionData; i
                 initial={{ opacity: 0, y: 24 }} 
                 animate={isActive ? { opacity: 1, y: 0 } : { opacity: 0.7, y: 12 }}
                 transition={{ duration: 0.6, ease: 'easeOut' }} 
-                className={`pl-4 md:pl-8 pr-4 md:pr-8 max-w-5xl w-full ${align === 'right' ? 'text-right mr-12' : 'text-left'}`}
+                className={`pl-4 md:pl-8 pr-4 md:pr-8 max-w-5xl flex flex-col w-full ${align === 'right' ? 'items-end mr-12' : 'text-left'}`}
             >
                 {title.trim().split(/\s+/).map(w => <Flip key={w}>{w}</Flip>)}
                 {subtitle && <p className="mt-4 text-white/90 md:text-xl font-light tracking-wide">{subtitle}</p>}
-                {content && <div className="mt-8">{content}</div>}
+                {content && <div className="mt-8 w-fit">{content}</div>}
                 {ctaHref && <div className="mt-10"><FancyButton href={ctaHref}>Lihat</FancyButton></div>}
             </motion.div>
             
