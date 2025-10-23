@@ -305,7 +305,12 @@ export default function PanoramaViewer() {
             style: { cursor: 'pointer' },
             anchor: 'center center',
             tooltip: 'Play / Stop',
-            chromaKey: { enabled: true, color: '#009200', similarity: 0.12 },
+            chromaKey: {
+            enabled: true,
+            color: '#00FF00',
+            similarity: 0.2,
+            smoothness: 0.2
+          },
             data: { ...baseConfig.data, clickAction: 'toggleVideoInfoPlay' },
           } as any;
         } else {

@@ -278,8 +278,9 @@ export default function ManageMarkers() {
           size: { width, height },
           chromaKey: {
             enabled: true,
-            color: '#009200',
-            similarity: 0.1,
+            color: '#00FF00',
+            similarity: 0.2,
+            smoothness: 0.2
           },
           anchor: 'center center',
         } as any;
